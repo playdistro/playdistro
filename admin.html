@@ -553,7 +553,7 @@ async function createUser() {
   const email = document.getElementById('newEmail').value.trim();
   const must = document.getElementById('mustChange').checked;
   if (!username||!password) { toast('Username and password required','error'); return; }
-  const { error } = await sb.from('users').insert({ username, role, password, email, must_change_password: must, is_active: true });
+  const { error } = await sb.from('users').insert({ username, role, password, must_change_password: must, is_active: true });
   if (error) { toast(error.message,'error'); return; }
   closeModal('createUserModal');
   toast('User created!','success');
