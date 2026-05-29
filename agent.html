@@ -303,7 +303,11 @@ textarea{resize:vertical;min-height:80px}
 <div class="toast" id="toast"></div>
 
 <script>
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function sendEmail(subject, body) {
+  await sb.functions.invoke('notify-email', {
+    body: { subject, body }
+  });
+}
 let currentUser = null;
 let clockedIn = false;
 let currentAttendanceId = null;
