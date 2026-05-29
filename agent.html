@@ -447,7 +447,7 @@ const titles={dashboard:'Dashboard',tasks:'My Tasks',scheduler:'Social Scheduler
   if (tab==='announcements') loadAnnouncements();
   if (tab==='guidelines') loadGuidelines();
   if (tab==='chat') initChat();
-  if (tab==='scheduler'){ renderSchedCal(); renderSchedQueue(); }
+  if (tab==='scheduler'){ setTimeout(()=>{ renderSchedCal(); renderSchedQueue(); },50); }
   if (tab==='submit') {
     document.getElementById('notClockedInMsg').style.display = clockedIn?'none':'block';
     loadCaptionTemplates();
