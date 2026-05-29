@@ -866,9 +866,20 @@ function switchSchedTab(t){
   else renderSchedQueue();
 }
 
-function toggleSchedPill(el){ el.classList.toggle('active'); }
-
+function toggleSchedPill(el){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){
+    const urls={'Facebook/Instagram':'https://business.facebook.com','TikTok':'https://www.tiktok.com/tiktokstudio/upload','YouTube':'https://studio.youtube.com'};
+    const url=urls[el.dataset.p];
+    if(url) window.open(url,'_blank');
+  }
+}
+function openSchedModalOnDate(dateStr){
+  openSchedModal();
+  document.getElementById('sched-datetime').value=dateStr+'T09:00';
+}
 function openSchedModal(idx){
+
   schedEditIdx = idx !== undefined ? idx : -1;
   document.querySelectorAll('.sched-pill').forEach(p=>p.classList.remove('active'));
   document.getElementById('sched-caption').value='';
@@ -937,7 +948,8 @@ function renderSchedCal(){
       const label=p.platforms.length>1?'Multi':p.platforms[0].split('/')[0];
       return `<div class="sched-dot ${cls}" onclick="openSchedModal(${idx})">${label}</div>`;
     }).join('');
-    html+=`<div class="sched-cell${isToday?' today':''}"><div class="sched-day">${d}</div>${dots}</div>`;
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  html+=`<div class="sched-cell${isToday?' today':''}" onclick="openSchedModalOnDate('${dateStr}')"><div class="sched-day">${d}</div>${dots}</div>`;
   }
   document.getElementById('sched-cal-grid').innerHTML=html;
 }
