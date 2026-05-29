@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const NOTIFY_EMAIL = 'playdistroph@gmail.com';
 
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby759P6BJhmt9CbtRg7b0U6SyRnVuqHrJSbXbe_1jj71wARqKb25BbMGJfM3D-KvyiF/exec';
 
 function getPHTTime() {
   return new Date().toLocaleString('en-PH', {
