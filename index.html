@@ -7,35 +7,19 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
-<body style="margin:0;padding:20px;background:#0a0a0f;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;box-sizing:border-box;">
+<body style="margin:0;padding:0;background:#0a0a0f;display:flex;justify-content:center;align-items:center;min-height:100vh;box-sizing:border-box;">
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-#app { min-height: 620px; background: #0a0a0f; color: #e8e8f0; font-family: 'DM Sans', sans-serif; border-radius: 12px; overflow: hidden; position: relative; }
+#app { min-height: 100vh; background: #0a0a0f; ... overflow: visible; ... }
 .screen { display: none; }
 .screen.active { display: block; }
 
-  /* REJECTION MODAL */
-.reject-modal { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#13131f; border:0.5px solid #ef4444; border-radius:16px; padding:1.5rem; width:320px; z-index:200; }
-.reject-modal h3 { font-size:15px; color:#ef4444; margin-bottom:6px; }
-.reject-modal p { font-size:12px; color:#6b6b80; margin-bottom:10px; }
-.reject-modal textarea { width:100%; background:#0a0a0f; border:0.5px solid #2a2a3d; border-radius:8px; padding:10px; color:#e8e8f0; font-size:13px; outline:none; resize:vertical; min-height:80px; font-family:'DM Sans',sans-serif; }
-.reject-modal textarea:focus { border-color:#ef4444; }
-.reject-modal-actions { display:flex; gap:8px; margin-top:12px; }
-.btn-confirm-reject { flex:1; background:#7f1d1d; border:0.5px solid #ef4444; color:#ef4444; border-radius:8px; padding:9px; font-size:13px; font-weight:600; cursor:pointer; }
-.btn-confirm-reject:hover { background:#991b1b; }
-.btn-cancel-reject { flex:1; background:transparent; border:0.5px solid #2a2a3d; color:#8888a0; border-radius:8px; padding:9px; font-size:13px; cursor:pointer; }
-
-/* AGENT REJECTION NOTICE */
-.rejection-notice { background:#1c0a0a; border:0.5px solid #ef4444; border-radius:10px; padding:12px 14px; margin-bottom:12px; display:none; }
-.rejection-notice .rn-title { font-size:13px; font-weight:600; color:#ef4444; margin-bottom:4px; }
-.rejection-notice .rn-note { font-size:12px; color:#fca5a5; line-height:1.5; }
-  
 /* LOGIN */
-.login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 620px; padding: 2rem; background: #0a0a0f; }
-.logo-wrap { margin-bottom: 2rem; text-align: center; display:flex; justify-content:center; align-items:center; }
-.logo-wrap img { height: 52px;  }
-.login-card { background: #13131f; border: 0.5px solid #2a2a3d; border-radius: 16px; padding: 2rem; width: 100%; max-width: 360px; }
+.login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: #0a0a0f; }
+.logo-wrap { margin-bottom: 1rem; text-align: center; display:flex; justify-content:center; align-items:center; }
+.logo-wrap img { height: 150px;  }
+.login-card { background: #13131f; border: 0.5px solid #2a2a3d; border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 480px; margin-top: 2rem; }
 .login-card h2 { font-size: 17px; font-weight: 600; color: #e8e8f0; margin-bottom: 4px; }
 .login-card p { font-size: 13px; color: #6b6b80; margin-bottom: 1.5rem; }
 .field { margin-bottom: 1rem; }
@@ -49,15 +33,15 @@
 
 
 /* WORK NOTES & TASK LOG */
-.notes-box { background: #13131f; border: 0.5px solid #2a2a3d; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.notes-box { background: #13131f; border: 0.5px solid #2a2a3d; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; width: 100%; }
 .notes-box h3 { font-size: 14px; font-weight: 600; color: #e8e8f0; margin-bottom: 0.75rem; }
 .notes-textarea { width: 100%; background: #0a0a0f; border: 0.5px solid #2a2a3d; border-radius: 8px; padding: 10px 12px; color: #e8e8f0; font-size: 13px; outline: none; resize: vertical; min-height: 80px; font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 .notes-textarea:focus { border-color: #7c3aed; }
-.task-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.task-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid #2a2a3d; width: 100%; box-sizing: border-box; }
 .task-input { flex: 1; background: #0a0a0f; border: 0.5px solid #2a2a3d; border-radius: 8px; padding: 8px 12px; color: #e8e8f0; font-size: 13px; outline: none; }
 .task-input:focus { border-color: #7c3aed; }
 .btn-add-task { background: #7c3aed; color: #fff; border: none; border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; }
-.task-list { list-style: none; padding: 0; margin: 8px 0 0 0; }
+.task-list { list-style: none; padding: 0; margin: 0; }
 .task-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid #1a1a2e; font-size: 13px; color: #c8c8d8; }
 .task-list li:last-child { border-bottom: none; }
 .task-check { color: #22c55e; font-size: 14px; }
@@ -74,9 +58,9 @@
 .log-notes { font-size: 11px; color: #6b6b80; margin-top: 3px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* TOPBAR */
-.topbar { background: #13131f; border-bottom: 0.5px solid #2a2a3d; padding: 0 1.25rem; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+.topbar { background: #13131f; border-bottom: 0.5px solid #2a2a3d; padding: 0 1.25rem; height: 90px; display: flex; align-items: center; justify-content: space-between; overflow: visible; }
 .tb-left { display: flex; align-items: center; gap: 10px; }
-.tb-left img { height: 30px;  }
+.tb-left img { height: 75px; max-height: none; width: auto; }
 .tb-right { display: flex; align-items: center; gap: 10px; }
 .user-badge { font-size: 13px; color: #8888a0; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px; }
@@ -88,7 +72,7 @@
 .btn-tab.active { color: #a78bfa; border-bottom-color: #7c3aed; }
 
 /* CONTENT */
-.content { padding: 1.25rem; }
+.content { padding: 1.25rem; width: 100%; box-sizing: border-box; }
 .section-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6b6b80; margin-bottom: 0.75rem; }
 .clock-card { background: #13131f; border: 0.5px solid #2a2a3d; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .clock-time { font-size: 26px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
@@ -140,8 +124,6 @@
 .exp-opt span { font-size: 13px; color: #e8e8f0; font-weight: 500; }
 .exp-opt small { display: block; font-size: 11px; color: #6b6b80; }
 .btn-cancel { width: 100%; background: transparent; border: 0.5px solid #2a2a3d; color: #8888a0; border-radius: 8px; padding: 9px; font-size: 13px; cursor: pointer; margin-top: 4px; }
-#rejectOverlay { z-index: 150; }
-#rejectModal { z-index: 200; pointer-events: all; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -202,6 +184,7 @@
           <button class="btn-in" id="btnIn" onclick="clockIn()"><i class="ti ti-player-play" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Clock In</button>
           <button class="btn-out" id="btnOut" onclick="clockOut()"><i class="ti ti-player-stop" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Clock Out</button>
         </div>
+          <p style="color:#8888a0; font-size:12px; margin-top:6px;">💡 Clock in when you're ready to work!</p>
       </div>
       <div class="section-lbl">This Week</div>
       <div class="stats-grid">
@@ -209,9 +192,18 @@
         <div class="stat"><div class="stat-lbl">Total Hours</div><div class="stat-val" id="sHrs">0h</div><div class="stat-sub">logged</div></div>
         <div class="stat"><div class="stat-lbl">Avg / Day</div><div class="stat-val" id="sAvg">—</div><div class="stat-sub">hours</div></div>
         <div class="stat"><div class="stat-lbl">Sessions</div><div class="stat-val" id="sSess">0</div><div class="stat-sub">total</div></div>
-      </div>
-    
-  	Deliverables
+    </div>
+      <div class="notes-box" style="margin-top:12px;">
+    <h3>
+      <svg width="15" height="15" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;margin-right:6px">
+        <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+        <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+        <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+        <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+        <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+        <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+      </svg>
+      Deliverables
     </h3>
     <p style="font-size:12px;color:#6b7280;margin:6px 0 14px 0;">Upload your daily reports, deliverables & session notes to the team folder.</p>
     <a href="https://drive.google.com/drive/folders/1340mHVgHIsx0LEdT_1R9Si2t9XS9Ebnu"
@@ -228,77 +220,26 @@
     <p style="font-size:11px;color:#6b7280;text-align:center;margin-top:8px;">💡 Sign in with your work Google account to upload.</p>
   </div>
 
-      <div class="section-lbl">Today's Tasks</div>
-      <div class="notes-box">
-        <h3><i class="ti ti-checklist" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>Task Log</h3>
-        <div class="task-row">
-          <input type="text" class="task-input" id="taskInput" placeholder="What are you working on?" />
-          <button class="btn-add-task" onclick="addTask()"><i class="ti ti-plus" style="font-size:13px;vertical-align:-1px"></i> Add</button>
-        </div>
-        <ul class="task-list" id="taskList"><li style="color:#4a4a5a;font-size:13px;">No tasks added yet</li></ul>
-      </div>
-      <div class="notes-box">
-        <h3><i class="ti ti-notes" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>Session Notes</h3>
-        <textarea class="notes-textarea" id="sessionNotes" placeholder="Describe what you worked on this session..."></textarea>
-        <p style="color:#8888a0; font-size:12px; margin-top:4px;">💡 Notes are saved automatically when you Clock Out.</p>
-      <div class="notes-box" id="dailyReportBox">
-        <h3><i class="ti ti-chart-bar" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>Daily Reports</h3>
-       <div class="rejection-notice" id="rejectionNotice">
-  <div class="rn-title">⚠️ Your report was rejected — please redo it</div>
-  <div class="rn-note" id="rejectionNoteText"></div>
-</div> 
-        <p style="color:#8888a0;font-size:12px;margin-bottom:10px;">Add one report per task completed.</p>
-  
-  <select id="reportWorkType" onchange="toggleReportFields()" style="width:100%;margin-bottom:8px;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;">
-    <option value="">What type of work?</option>
-    <option value="content">Content Creation</option>
-    <option value="posting">Posting / Distribution</option>
-    <option value="both">Both</option>
-  </select>
-
-  <div id="contentFields" style="display:none">
-    <select id="reportContentType" style="width:100%;margin-bottom:8px;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;">
-      <option value="">What did you create?</option>
-      <option>Graphic</option>
-      <option>Carousel</option>
-      <option>Video</option>
-      <option>Caption</option>
-      <option>Reel</option>
-      <option>Other</option>
-    </select>
-    <select id="reportDriveUploaded" style="width:100%;margin-bottom:8px;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;">
-      <option value="">Uploaded to Drive?</option>
-      <option>Yes</option>
-      <option>No</option>
-    </select>
+     <div style="width:100%">
+  <div class="section-lbl">Today's Tasks</div>
+  <div class="notes-box">
+    <h3><i class="ti ti-checklist" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>Task Log</h3>
+    <ul class="task-list" id="taskList"><li style="color:#4a4a5a;font-size:13px;">No tasks added yet</li></ul>
+    <div class="task-row">
+      <input type="text" class="task-input" id="taskInput" placeholder="What are you working on?" />
+      <button class="btn-add-task" onclick="addTask()"><i class="ti ti-plus" style="font-size:13px;vertical-align:-1px"></i> Add</button>
+    </div>
+    
+  </div>
+  <div class="notes-box">
+    <h3><i class="ti ti-notes" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>Session Notes</h3>
+    <textarea class="notes-textarea" id="sessionNotes" placeholder="Describe what you worked on this session..."></textarea>
+    <p style="color:#8888a0; font-size:12px; margin-top:4px;">💡 Notes are saved automatically when you Clock Out.</p>
   </div>
 
-  <div id="postingFields" style="display:none">
-    <select id="reportPlatform" style="width:100%;margin-bottom:8px;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;">
-      <option value="">Select Platform</option>
-      <option>TikTok</option>
-      <option>Instagram</option>
-      <option>YouTube</option>
-      <option>Facebook</option>
-      <option>Twitter/X</option>
-    </select>
-    <input type="text" id="reportPostLink" placeholder="Paste post link here" style="width:100%;margin-bottom:8px;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;" />
-    <div style="display:flex;gap:8px;margin-bottom:8px;">
-      <input type="number" id="reportViews" placeholder="Views" style="flex:1;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;" />
-      <input type="number" id="reportLikes" placeholder="Likes" style="flex:1;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;" />
-      <input type="number" id="reportFollowers" placeholder="New Followers" style="flex:1;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;" />
-    </div>
-  </div>
 
-  <textarea id="reportNotes" placeholder="Notes about this task..." style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #2a2a4a;border-radius:6px;height:60px;margin-bottom:8px;"></textarea>
-  <button onclick="saveReport()" style="width:100%;padding:10px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">+ Save This Report</button>
-  <div id="reportStatus" style="margin-top:6px;font-size:12px;color:#f87171;display:none;">⚠️ Please select work type before saving.</div>
 
-  <div id="reportsList" style="margin-top:12px;"></div>
-</div>
-      </div>
-    </div>
-        <div id="panelLog" class="content" style="display:none">
+    <div id="panelLog" class="content" style="display:none">
       <div class="log-box">
         <div class="log-head"><span><i class="ti ti-history" style="font-size:14px;vertical-align:-2px;margin-right:6px" aria-hidden="true"></i>Attendance Log</span>
           <button class="btn-sm" onclick="showExport()"><i class="ti ti-download" style="font-size:13px;vertical-align:-1px" aria-hidden="true"></i> Export</button>
@@ -327,13 +268,9 @@
           <thead><tr><th>Employee</th><th>Date</th><th>In</th><th>Out</th><th>Duration</th><th>Tasks & Notes</th></tr></thead>
           <tbody id="allLog"><tr><td colspan="5" class="empty">No sessions yet</td></tr></tbody>
         </table>
+      </div>
     </div>
-     <div class="admin-card">
-      <h3><i class="ti ti-clipboard-check" style="font-size:14px;vertical-align:-2px;margin-right:6px" aria-hidden="true"></i>Daily Reports — Approval</h3>
-  <div id="adminReportsList"><p style="color:#4a4a5a;font-size:13px;">No reports yet.</p></div>
-</div>
-</div>
-</div>
+  </div>
 
   <div class="overlay" id="overlay" onclick="hideExport()"></div>
   <div class="modal" id="expModal">
@@ -349,24 +286,14 @@
     </div>
     <button class="btn-cancel" onclick="hideExport()">Cancel</button>
   </div>
-<div class="overlay" id="rejectOverlay" onclick="closeRejectModal()"></div>
-<div class="reject-modal" id="rejectModal">
-  <h3>❌ Reject Report</h3>
-  <p>Write a note explaining what needs to be redone. The agent will see this when they log in.</p>
-  <textarea id="rejectNoteInput" placeholder="e.g. Missing post link, views not filled in..."></textarea>
-  <div class="reject-modal-actions">
-    <button class="btn-cancel-reject" onclick="closeRejectModal()">Cancel</button>
-    <button class="btn-confirm-reject" onclick="confirmReject()">Reject & Notify</button>
-  </div>
-</div>
+
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnCCAOD0YnnQvjx8Urnw8YFZfBbX16QTgjazDO5y4GseXid6hgjLQdAVA_fgIzJwRGuw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzsyLuLI_476Xi1nAPrJ4X0ujfxbw-ItbUaCIMF-gFx-fP-cshp1RrVjiyTtMMy9lMwww/exec';
 let currentUser = null;
 let clockInTime = null;
 let clockInterval = null;
-
 
 let freelancer = [
   { name: 'Social Media Specialist', role: 'Social Media', password: 'playdistro123', isAdmin: false },
@@ -374,89 +301,7 @@ let freelancer = [
   { name: 'Admin', role: 'Administrator', password: 'admin2024', isAdmin: true }
 ];
 let sessions = [];
-let rejectTargetId = null;
 
-function checkRejectionNotice() {
-  const reports = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  const rejected = reports.find(r => r.user === currentUser.name && r.status === 'Rejected');
-  const notice = document.getElementById('rejectionNotice');
-  const noteText = document.getElementById('rejectionNoteText');
-  if (rejected && rejected.rejectionNote) {
-    notice.style.display = 'block';
-    noteText.textContent = rejected.rejectionNote;
-  } else {
-    notice.style.display = 'none';
-  }
-}
-
-function renderAdminReports() {
-  const el = document.getElementById('adminReportsList');
-  if (!el) return;
-  const reports = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  if (!reports.length) { el.innerHTML='<p style="color:#4a4a5a;font-size:13px;">No reports yet.</p>'; return; }
-  el.innerHTML = reports.slice().reverse().map(r=>`
-    <div style="background:#0a0a0f;border:0.5px solid #2a2a3d;border-radius:8px;padding:12px;margin-bottom:10px;font-size:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="color:#a78bfa;font-weight:600;">${r.user}</span>
-        <span style="color:#4a4a6a;">${r.date} ${r.time}</span>
-      </div>
-      <div style="color:#c8c8d8;">Type: ${r.workType}</div>
-      ${r.platform!=='—'?`<div style="color:#c8c8d8;">Platform: ${r.platform}</div>`:''}
-      ${r.postLink!=='—'?`<div><a href="${r.postLink}" target="_blank" style="color:#60a5fa;">View Post</a></div>`:''}
-      ${r.views!=='—'?`<div style="color:#c8c8d8;">Views: ${r.views} | Likes: ${r.likes} | Followers: ${r.followers}</div>`:''}
-      ${r.notes?`<div style="color:#8888a0;margin-top:4px;">${r.notes}</div>`:''}
-      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-        <span style="font-size:11px;font-weight:600;color:${r.status==='Approved'?'#22c55e':r.status==='Rejected'?'#ef4444':'#fbbf24'};">
-          ${r.status==='Approved'?'✅ Approved':r.status==='Rejected'?'❌ Rejected':'⏳ Pending'}
-        </span>
-        ${r.status==='Pending'?`
-          <button onclick="approveReport(${r.id})" style="background:#14532d;border:0.5px solid #22c55e;color:#22c55e;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">Approve</button>
-          <button onclick="openRejectModal(${r.id})" style="background:#450a0a;border:0.5px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">Reject</button>
-        `:''}
-        ${r.status==='Rejected'&&r.rejectionNote?`<span style="color:#fca5a5;font-size:11px;">Note: ${r.rejectionNote}</span>`:''}
-      </div>
-    </div>`).join('');
-}
-
-function approveReport(id) {
-  const reports = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  const idx = reports.findIndex(r=>r.id===id);
-  if (idx===-1) return;
-  reports[idx].status = 'Approved';
-  reports[idx].rejectionNote = '';
-  localStorage.setItem('dailyReports', JSON.stringify(reports));
-  renderAdminReports();
-}
-
-function openRejectModal(id) {
-  rejectTargetId = id;
-  document.getElementById('rejectNoteInput').value = '';
-  document.getElementById('rejectModal').style.display = 'block';
-  document.getElementById('rejectOverlay').style.display = 'block';
-  document.getElementById('rejectOverlay').style.zIndex = '150';
-  document.getElementById('rejectModal').style.zIndex = '201';
-  document.getElementById('rejectModal').style.pointerEvents = 'all';
-}
-
-function closeRejectModal() {
-  rejectTargetId = null;
-  document.getElementById('rejectModal').style.display = 'none';
-  document.getElementById('rejectOverlay').style.display = 'none';
-}
-
-function confirmReject() {
-  const note = document.getElementById('rejectNoteInput').value.trim();
-  if (!note) { document.getElementById('rejectNoteInput').style.borderColor='#ef4444'; return; }
-  document.getElementById('rejectNoteInput').style.borderColor='';
-  const reports = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  const idx = reports.findIndex(r=>r.id===rejectTargetId);
-  if (idx===-1) return;
-  reports[idx].status = 'Rejected';
-  reports[idx].rejectionNote = note;
-  localStorage.setItem('dailyReports', JSON.stringify(reports));
-  closeRejectModal();
-  renderAdminReports();
-}
 try { 
   const s = localStorage.getItem('pd_freelancer');
   const ss = localStorage.getItem('pd_sessions');
@@ -491,21 +336,14 @@ function doLogin() {
   document.getElementById('dashboard').classList.add('active');
   document.getElementById('topUser').textContent = u.name;
   if (u.isAdmin) {
-  document.getElementById('adminBtn').style.display='block';
-  document.getElementById('tabAdmin').style.display='inline-block';
-  document.getElementById('expAll').style.display='flex';
-  const dr = document.getElementById('dailyReportBox');
-  if(dr) dr.style.display='none';
-} else {
-  checkRejectionNotice();
-  renderReports();
-}
-
+    document.getElementById('adminBtn').style.display='block';
+    document.getElementById('tabAdmin').style.display='inline-block';
+    document.getElementById('expAll').style.display='flex';
+  }
   startClock();
   updateStats();
   renderLog();
   renderAdminLog();
-  renderAdminReports();
   renderFreelancerList();
   // Show chat bubble only for freelancers, hide for admin
   setTimeout(function() {
@@ -514,11 +352,13 @@ function doLogin() {
         Tawk_API.hideWidget();
       } else {
         Tawk_API.showWidget();
+       
+        Tawk_API.endChat();
         // Set unique visitor identity per freelancer so each gets their own chat thread
         try {
           Tawk_API.setAttributes({
             'name': u.name,
-            'email': u.name.toLowerCase().replace(/\s+/g,'') + '@playdistro.internal',
+            'email': u.name.toLowerCase().replace(/\s+/g,'') + '@playdistrodistro.com',
             'role': u.role
           }, function(error){});
         } catch(e){}
@@ -531,8 +371,6 @@ function doLogout() {
   if (clockInTime) clockOut();
   currentUser = null;
   clearInterval(clockInterval);
-  const dr = document.getElementById('dailyReportBox');
-  if(dr) dr.style.display='block';
   document.getElementById('dashboard').classList.remove('active');
   document.getElementById('loginScreen').classList.add('active');
   document.getElementById('passInput').value = '';
@@ -542,10 +380,9 @@ function doLogout() {
   showTab('myday');
   // Hide chat and reset visitor identity on logout so next freelancer gets their own chat
   if (typeof Tawk_API !== 'undefined') {
-      try { Tawk_API.endChat(); } catch(e){}
-      try { Tawk_API.visitor = { name: '', email: '' }; } catch(e){}
-      try { Tawk_API.hideWidget(); } catch(e){}
-    }
+    try { Tawk_API.hideWidget(); } catch(e){}
+    
+  }
 }
 
 function startClock() {
@@ -585,14 +422,6 @@ function clockIn() {
 
 function clockOut() {
   if (!clockInTime) return;
-const platform = document.getElementById('reportPlatform').value;
-const postLink = document.getElementById('reportPostLink').value.trim();
-const views = document.getElementById('reportViews').value;
-if (!platform || !postLink || !views) {
-  document.getElementById('reportStatus').style.display = 'block';
-  return;
-}
-document.getElementById('reportStatus').style.display = 'none';
   const out = new Date();
   const dur = Math.floor((out - clockInTime)/60000);
   const h = Math.floor(dur/60), m = dur%60;
@@ -619,7 +448,7 @@ document.getElementById('reportStatus').style.display = 'none';
   document.getElementById('sLbl').textContent='Clocked Out';
   document.getElementById('sessInfo').textContent='Last session: '+h+'h '+m+'m';
   updateStats(); renderLog(); renderAdminLog();
-    setTimeout(() => doLogout(), 1000);
+    setTimeout(() => doLogout(), 2000);
     fetch(SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
@@ -713,8 +542,9 @@ function showTab(t) {
   document.getElementById('tabMyDay').className='btn-tab'+(t==='myday'?' active':'');
   document.getElementById('tabLog').className='btn-tab'+(t==='log'?' active':'');
   document.getElementById('tabAdmin').className='btn-tab'+(t==='admin'?' active':'');
-  if (t==='admin') { renderAdminLog(); renderFreelancerList(); }
-  
+ if (t==='admin') { renderAdminLog(); renderFreelancerList(); }
+if (t==='log') { renderLog(); }
+
 }
 
 function showExport() { document.getElementById('expModal').style.display='block'; document.getElementById('overlay').style.display='block'; }
@@ -734,69 +564,7 @@ function exportCSV(type) {
 
 // ── TASK LOG ──
 let tasks = [];
-function toggleReportFields() {
-  const type = document.getElementById('reportWorkType').value;
-  document.getElementById('contentFields').style.display = (type==='content'||type==='both') ? 'block' : 'none';
-  document.getElementById('postingFields').style.display = (type==='posting'||type==='both') ? 'block' : 'none';
-}
 
-function saveReport() {
-  const type = document.getElementById('reportWorkType').value;
-  if (!type) { document.getElementById('reportStatus').style.display='block'; return; }
-  document.getElementById('reportStatus').style.display='none';
-  const report = {
-    id: Date.now(),
-    user: currentUser.name,
-    date: new Date().toLocaleDateString('en-PH', {timeZone:'Asia/Manila'}),
-    time: new Date().toLocaleTimeString('en-PH', {timeZone:'Asia/Manila', hour12:true}),
-    workType: type,
-    contentType: document.getElementById('reportContentType').value || '—',
-    driveUploaded: document.getElementById('reportDriveUploaded').value || '—',
-    platform: document.getElementById('reportPlatform').value || '—',
-    postLink: document.getElementById('reportPostLink').value || '—',
-    views: document.getElementById('reportViews').value || '—',
-    likes: document.getElementById('reportLikes').value || '—',
-    followers: document.getElementById('reportFollowers').value || '—',
-    notes: document.getElementById('reportNotes').value,
-    status: 'Pending'
-  };
-  const reports = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  reports.push(report);
-  localStorage.setItem('dailyReports', JSON.stringify(reports));
-  renderReports();
-  document.getElementById('reportWorkType').value='';
-  document.getElementById('reportNotes').value='';
-  document.getElementById('reportPostLink').value='';
-  document.getElementById('reportViews').value='';
-  document.getElementById('reportLikes').value='';
-  document.getElementById('reportFollowers').value='';
-  document.getElementById('contentFields').style.display='none';
-  document.getElementById('postingFields').style.display='none';
-}
-  function renderReports() {
-  const all = JSON.parse(localStorage.getItem('dailyReports')||'[]');
-  const reports = all.filter(r=>r.user===currentUser.name);
-  const el = document.getElementById('reportsList');
-  if(!el) return;
-  if(!reports.length){ el.innerHTML='<p style="color:#4a4a5a;font-size:13px;">No reports saved yet.</p>'; return; }
-  el.innerHTML = reports.slice().reverse().map(r=>`
-    <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:10px;margin-top:8px;font-size:12px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-        <span style="color:#a78bfa;font-weight:600;">${r.workType.toUpperCase()}</span>
-        <span style="color:#4a4a6a;">${r.time}</span>
-      </div>
-      ${r.contentType!=='—'?`<div style="color:#ccc;">Created: ${r.contentType} — Drive: ${r.driveUploaded}</div>`:''}
-      ${r.platform!=='—'?`<div style="color:#ccc;">Platform: ${r.platform}</div>`:''}
-      ${r.postLink!=='—'?`<div><a href="${r.postLink}" target="_blank" style="color:#60a5fa;">View Post</a></div>`:''}
-      ${r.views!=='—'?`<div style="color:#ccc;">Views: ${r.views} | Likes: ${r.likes} | Followers: ${r.followers}</div>`:''}
-      ${r.notes?`<div style="color:#8888a0;margin-top:4px;">${r.notes}</div>`:''}
-      <div style="margin-top:4px;font-size:11px;color:${r.status==='Approved'?'#22c55e':r.status==='Rejected'?'#ef4444':'#fbbf24'};">
-      ${r.status==='Approved'?'✅ Approved':r.status==='Rejected'?'❌ Rejected — Needs Redo':'⏳ Pending Approval'}
-      ${r.status==='Rejected'&&r.rejectionNote?`<div style="color:#fca5a5;margin-top:3px;">Admin note: ${r.rejectionNote}</div>`:''}
-</div>
-    </div>
-  `).join('');
-}
 function addTask() {
   const input = document.getElementById('taskInput');
   const val = input.value.trim();
@@ -849,23 +617,19 @@ function callOwner() {
       }
     }, 1500);
   });
-var Tawk_API = Tawk_API || {};
-Tawk_API.onLoad = function() {
-  Tawk_API.minimize(); // always start minimized
-  if (typeof currentUser !== 'undefined' && currentUser && currentUser.name) {
-    Tawk_API.setAttributes({
-      'name': currentUser.name,
-      'email': currentUser.email || currentUser.name + '@playdistro.com',
-      'hash': currentUser.uid || currentUser.name
-    }, function(error) {});
-  }
-};
-  
-  </script>
+  var Tawk_API = Tawk_API || {};
+  Tawk_API.onLoad = function() {
+    Tawk_API.minimize();
+    setTimeout(function(){
+        try { Tawk_API.endChat(); } catch(e){}
+    }, 1000);
+
+  };
+</script>
 
 <!--Tawk.to - loads only for freelancers, hidden for admin-->
 <script type="text/javascript">
- Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 (function(){
   var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
   s1.async=true;
@@ -875,7 +639,6 @@ Tawk_API.onLoad = function() {
   s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
-  
 
 <script>
 // PART 1: Notification Permission (request this after login for the OWNER/admin)
