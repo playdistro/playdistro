@@ -868,9 +868,7 @@ function toast(msg, type='success') {
   setTimeout(()=>t.className='toast',3000);
 }
 // ===== SCHEDULER =====
-let schedPosts = [];
-let schedCalDate = new Date();
-let schedEditIdx = -1;
+
 
 function saveSchedPosts(){ localStorage.setItem('pd_sched_'+(currentUser&&currentUser.id||'x'), JSON.stringify(schedPosts)); }
 
