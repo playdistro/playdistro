@@ -332,8 +332,21 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div class="form-group">
         <div class="form-label">Schedule Date & Time</div>
-        <input type="datetime-local" id="sched-datetime">
-      </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <input type="date" id="sched-date" style="flex:1">
+  <select id="sched-hour" style="width:80px">
+    <option>06</option><option>07</option><option>08</option><option>09</option>
+    <option>10</option><option>11</option><option>12</option><option>01</option>
+    <option>02</option><option>03</option><option>04</option><option>05</option>
+  </select>
+  <select id="sched-min" style="width:70px">
+    <option>00</option><option>15</option><option>30</option><option>45</option>
+  </select>
+  <select id="sched-ampm" style="width:70px">
+    <option>AM</option><option>PM</option>
+  </select>
+  </div>
+  </div>
       <div class="form-group">
         <div class="form-label">Status</div>
         <select id="sched-status">
@@ -397,11 +410,12 @@ let currentAttendanceId = null;
 let timerInterval = null;
 let clockInTime = null;
 
-window.addEventListener('load', async () => {
+wWindow.addEventListener('load', async () => {
   Notification.requestPermission();
   currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
   if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
   document.getElementById('sidebarUser').textContent = currentUser.username;
+  schedPosts = JSON.parse(localStorage.getItem('pd_sched_'+currentUser.id)||'[]');
   document.getElementById('videoCallBtn').href = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
   
   // Check if already clocked in (same session)
@@ -851,7 +865,7 @@ function toast(msg, type='success') {
   setTimeout(()=>t.className='toast',3000);
 }
 // ===== SCHEDULER =====
-let schedPosts = JSON.parse(localStorage.getItem('pd_sched_'+( currentUser&&currentUser.id||'x'))||'[]');
+let schedPosts = [];
 let schedCalDate = new Date();
 let schedEditIdx = -1;
 
@@ -876,14 +890,14 @@ function toggleSchedPill(el){
 }
 function openSchedModalOnDate(dateStr){
   openSchedModal();
-  document.getElementById('sched-datetime').value=dateStr+'T09:00';
+  document.getElementById('sched-date').value=dateStr;
 }
 function openSchedModal(idx){
 
   schedEditIdx = idx !== undefined ? idx : -1;
   document.querySelectorAll('.sched-pill').forEach(p=>p.classList.remove('active'));
   document.getElementById('sched-caption').value='';
-  document.getElementById('sched-datetime').value='';
+  document.getElementById('sched-date').value='';
   document.getElementById('sched-status').value='Scheduled';
   if(schedEditIdx>=0){
     const p=schedPosts[schedEditIdx];
@@ -892,7 +906,11 @@ function openSchedModal(idx){
       if(el) el.classList.add('active');
     });
     document.getElementById('sched-caption').value=p.caption;
-    document.getElementById('sched-datetime').value=p.datetime;
+    const dt=new Date(p.datetime);
+    document.getElementById('sched-date').value=p.datetime.slice(0,10);
+    let ph=dt.getHours(); const pAmpm=ph>=12?'PM':'AM'; ph=ph%12||12;
+    document.getElementById('sched-hour').value=String(ph).padStart(2,'0');
+    document.getElementById('sched-ampm').value=pAmpm;
     document.getElementById('sched-status').value=p.status;
   }
   openModal('schedModal');
@@ -901,7 +919,12 @@ function openSchedModal(idx){
 function saveSchedPost(){
   const platforms=[...document.querySelectorAll('.sched-pill.active')].map(p=>p.dataset.p);
   const caption=document.getElementById('sched-caption').value.trim();
-  const datetime=document.getElementById('sched-datetime').value;
+  let h=parseInt(document.getElementById('sched-hour').value);
+  const min=document.getElementById('sched-min').value;
+  const ampm=document.getElementById('sched-ampm').value;
+  if(ampm==='PM'&&h!==12) h+=12;
+  if(ampm==='AM'&&h===12) h=0;
+  const datetime=document.getElementById('sched-date').value+'T'+String(h).padStart(2,'0')+':'+min;
   const status=document.getElementById('sched-status').value;
   if(!platforms.length){ toast('Select at least one platform','error'); return; }
   if(!caption){ toast('Write a caption','error'); return; }
