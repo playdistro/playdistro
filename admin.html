@@ -359,6 +359,7 @@ let chatChannel = null;
 
 // AUTH CHECK
 window.addEventListener('load', async () => {
+  Notification.requestPermission();
   currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'supervisor')) {
     window.location.href = 'index.html'; return;
@@ -478,7 +479,27 @@ async function reviewTask(status) {
   loadTasks();
   loadDashboard();
 }
+function playNotifSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.setValueAtTime(880, ctx.currentTime);
+  o.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+  g.gain.setValueAtTime(0.3, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+  o.start(ctx.currentTime);
+  o.stop(ctx.currentTime + 0.4);
+}
 
+function showChatNotif(from, msg) {
+  playNotifSound();
+  if (Notification.permission === 'granted') {
+    new Notification('New message from ' + from, { body: msg, icon: '' });
+  }
+}
+
+  
 // ATTENDANCE
 async function loadAttendance() {
   let q = sb.from('attendance').select('*').order('clock_in',{ascending:false});
@@ -636,6 +657,7 @@ async function loadChatMessages(agentUsername) {
 }
 
 function renderChatMessage(m) {
+  if (m.from_role === 'agent') showChatNotif(m.from_username, m.message);
   const box = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.innerHTML = `<div class="msg-bubble ${m.from_role==='admin'||m.from_role==='supervisor'?'admin':'agent'}">
