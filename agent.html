@@ -362,9 +362,47 @@ textarea{resize:vertical;min-height:80px}
           <option value="Scheduled">Scheduled</option>
           <option value="Posted">Posted</option>
         </select>
+     </div>
+      <div class="form-group full" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:14px;margin-top:4px">
+        <div class="form-label" style="color:var(--purple);margin-bottom:10px">📁 Google Drive File Verification</div>
+        <div class="form-group full" style="margin-bottom:12px">
+          <div class="form-label">Content Type</div>
+          <select id="sched-content-type" onchange="updateSchedFileName()">
+            <option value="">Select type...</option>
+            <option value="Video">Video</option>
+            <option value="Graphic">Graphic</option>
+            <option value="Carousel">Carousel</option>
+            <option value="Caption Only">Caption Only</option>
+          </select>
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:12px;font-weight:500">Have you already uploaded the file to the PlayDistro Google Drive?</div>
+        <div style="display:flex;gap:16px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="drive-uploaded" id="drive-yes" value="yes" onchange="toggleDriveFields()" style="width:16px;height:16px;accent-color:var(--purple)">
+            ✅ Yes, file is uploaded
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="drive-uploaded" id="drive-no" value="no" onchange="toggleDriveFields()" style="width:16px;height:16px;accent-color:var(--error)">
+            ❌ Not yet
+          </label>
+        </div>
+        <div id="drive-not-uploaded-msg" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;padding:10px;color:var(--error);font-size:12px">
+          ⚠️ You must upload the file to Google Drive first before scheduling. Please upload then come back.
+        </div>
+        <div id="drive-fields" style="display:none">
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">File Name <span style="color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0">(auto-suggested)</span></div>
+            <input type="text" id="sched-filename" placeholder="e.g. agent1_Facebook_2026-05-29_Video">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Google Drive Shared Link</div>
+            <input type="text" id="sched-drive-url" placeholder="Paste Google Drive link here...">
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Right-click file in Drive → Share → Copy link</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="modal-actions">
+      </div>
+      <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('schedModal')">Cancel</button>
       <button class="btn" onclick="saveSchedPost()">Save Post</button>
     </div>
@@ -901,11 +939,7 @@ function switchSchedTab(t){
 
 function toggleSchedPill(el){
   el.classList.toggle('active');
-  if(el.classList.contains('active')){
-    const urls={'Facebook/Instagram':'https://www.facebook.com','TikTok':'https://www.tiktok.com/upload','YouTube':'https://studio.youtube.com'};
-    const url=urls[el.dataset.p];
-    if(url) window.open(url,'_blank');
-  }
+  updateSchedFileName();
 }
 function openSchedModalOnDate(dateStr){
   openSchedModal();
@@ -956,24 +990,32 @@ async function saveSchedPost(){
   const year=document.getElementById('sched-year').value;
   const datetime=`${year}-${month}-${day}T${String(h).padStart(2,'0')}:${min}`;
   const status=document.getElementById('sched-status').value;
-  if(!platforms.length){ toast('Select at least one platform','error'); return; }
-  if(!caption){ toast('Write a caption','error'); return; }
-  if(!datetime){ toast('Set a date and time','error'); return; }
-  await sb.from('scheduled_posts').insert({
+ if(!platforms.length){ toast('Select at least one platform','error'); return; }
+ if(!caption){ toast('Write a caption','error'); return; }
+ if(!datetime){ toast('Set a date and time','error'); return; }
+ const driveUploaded = document.querySelector('input[name="drive-uploaded"]:checked');
+ if(!driveUploaded){ toast('Please confirm if file is uploaded to Google Drive','error'); return; }
+ if(driveUploaded.value==='no'){ toast('Upload the file to Google Drive first before scheduling','error'); return; }
+ const driveUrl = document.getElementById('sched-drive-url').value.trim();
+ const filename = document.getElementById('sched-filename').value.trim();
+ if(!driveUrl){ toast('Paste the Google Drive shared link','error'); return; }
+ if(!filename){ toast('Enter the file name','error'); return; }
+await sb.from('scheduled_posts').insert({
   user_id:currentUser.id,
   username:currentUser.username,
   platforms,
   caption,
   scheduled_datetime:datetime,
   status,
-  url
+  file_name:filename,
+  drive_url:driveUrl
 });
 await loadSchedPosts();
 closeModal('schedModal');
 renderSchedCal();
 renderSchedQueue();
 toast('Post saved!','success');
-await sendEmail(`📅 Post Scheduled by ${currentUser.username}`,`Platform: ${platforms.join(', ')}\nDate: ${datetime}\nCaption: ${caption}${url?'\nURL: '+url:''}`);
+await sendEmail(`📅 Post Scheduled by ${currentUser.username}`,`Platform: ${platforms.join(', ')}\nDate: ${datetime}\nCaption: ${caption}\nFile: ${filename}\nDrive: ${driveUrl}`);
 }
 
 
