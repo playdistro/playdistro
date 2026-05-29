@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Portal — PlayDistro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050505;--surface:#0d0d0d;--surface2:#111;--border:#1e1e1e;--purple:#a855f7;--purple-dark:#7c3aed;--text:#f0f0f0;--muted:#666;--error:#f87171;--success:#4ade80;--warning:#fbbf24;--info:#60a5fa}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:210px;min-width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0}
+.brand{padding:0 20px 20px;border-bottom:1px solid var(--border)}
+.brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.brand-role{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.nav{flex:1;padding:16px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;color:var(--muted);transition:all 0.15s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(168,85,247,0.05)}
+.nav-item.active{color:var(--purple);border-left-color:var(--purple);background:rgba(168,85,247,0.08)}
+.sidebar-bottom{padding:16px 20px;border-top:1px solid var(--border)}
+.user-info{font-size:12px;color:var(--muted);margin-bottom:10px}
+.user-info strong{color:var(--text);display:block;font-size:13px}
+.shift-timer{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;padding:10px;text-align:center;margin-bottom:10px}
+.shift-timer-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.shift-timer-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--purple)}
+.clock-btn{width:100%;border:none;border-radius:6px;padding:10px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-bottom:8px}
+.clock-btn.in{background:linear-gradient(135deg,var(--purple-dark),var(--purple));color:#fff}
+.clock-btn.out{background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);color:var(--error)}
+.logout-btn{width:100%;background:transparent;border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.2s}
+.logout-btn:hover{border-color:var(--error);color:var(--error)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.notif-bell{position:relative;cursor:pointer;font-size:20px;color:var(--muted)}
+.notif-count{position:absolute;top:-4px;right:-4px;background:var(--purple);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.content{flex:1;overflow-y:auto;padding:24px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;margin-top:4px}
+.stat-val.purple{color:var(--purple)}.stat-val.green{color:var(--success)}.stat-val.yellow{color:var(--warning)}.stat-val.red{color:var(--error)}
+.section{background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:20px}
+.section-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.section-body{padding:20px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 12px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-purple{background:rgba(168,85,247,0.15);color:#c084fc}
+.badge-green{background:rgba(74,222,128,0.15);color:#4ade80}
+.badge-yellow{background:rgba(251,191,36,0.15);color:#fbbf24}
+.badge-red{background:rgba(248,113,113,0.15);color:#f87171}
+.badge-blue{background:rgba(96,165,250,0.15);color:#60a5fa}
+.btn{background:linear-gradient(135deg,var(--purple-dark),var(--purple));border:none;border-radius:6px;padding:8px 16px;color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+.btn:hover{opacity:0.85}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--purple);color:var(--purple)}
+.btn-danger{background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);color:var(--error)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+input,select,textarea{background:#0a0a0a;border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--purple)}
+select option{background:#1a1a1a}
+textarea{resize:vertical;min-height:80px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+/* CHAT */
+.chat-box{display:flex;flex-direction:column;height:480px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.chat-header-bar{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;background:var(--surface);display:flex;align-items:center;gap:8px}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#080808}
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5}
+.msg-bubble.mine{background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);align-self:flex-end;border-bottom-right-radius:2px}
+.msg-bubble.theirs{background:var(--surface2);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:2px}
+.msg-time{font-size:10px;color:var(--muted);margin-top:4px}
+.chat-input-row{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--surface)}
+.chat-input-row input{flex:1}
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item input[type=checkbox]{width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:var(--purple)}
+.platform-info{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.platform-info-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;z-index:200;transform:translateY(100px);opacity:0;transition:all 0.3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(74,222,128,0.4);color:var(--success)}
+.toast.error{border-color:rgba(248,113,113,0.4);color:var(--error)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="brand">
+    <div class="brand-name">PlayDistro</div>
+    <div class="brand-role">Agent Portal</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="showTab('dashboard')"><span>📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showTab('tasks')"><span>📝</span> My Tasks</div>
+    <div class="nav-item" onclick="showTab('submit')"><span>➕</span> Submit Task</div>
+    <div class="nav-item" onclick="showTab('chat')"><span>💬</span> Chat Support</div>
+    <div class="nav-item" onclick="showTab('attendance')"><span>🕐</span> My Attendance</div>
+    <div class="nav-item" onclick="showTab('announcements')"><span>📢</span> Announcements</div>
+    <div class="nav-item" onclick="showTab('guidelines')"><span>📋</span> Brand Guidelines</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="shift-timer" id="shiftTimerBox">
+      <div class="shift-timer-label">Shift Time</div>
+      <div class="shift-timer-val" id="shiftTimerVal">00:00:00</div>
+    </div>
+    <button class="clock-btn in" id="clockBtn" onclick="toggleClock()">🟢 Clock In</button>
+    <div class="user-info"><strong id="sidebarUser">—</strong>Agent</div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="notif-bell" onclick="showTab('notifications')">🔔 <span class="notif-count" id="notifCount" style="display:none">0</span></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Tasks Today</div><div class="stat-val purple" id="statToday">0</div></div>
+        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-val green" id="statApproved">0</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val yellow" id="statPending">0</div></div>
+        <div class="stat-card"><div class="stat-label">Approval Rate</div><div class="stat-val" id="statRate">—</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">My Tasks Today</div></div>
+        <div class="section-body" id="dashTasks"><div style="color:var(--muted);font-size:13px">No tasks yet today</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><div class="section-title">Notifications</div></div>
+        <div class="section-body" id="notifList"><div style="color:var(--muted);font-size:13px">No notifications</div></div>
+      </div>
+    </div>
+
+    <!-- MY TASKS -->
+    <div class="tab-panel" id="tab-tasks">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">My Submissions</div>
+          <select id="myTaskFilter" onchange="loadMyTasks()" style="width:auto;padding:6px 10px;font-size:12px">
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="revision">Needs Revision</option>
+          </select>
+        </div>
+        <div class="section-body">
+          <table class="tbl"><thead><tr><th>Title</th><th>Platform</th><th>Status</th><th>Admin Note</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="myTasksTable"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBMIT TASK -->
+    <div class="tab-panel" id="tab-submit">
+      <div class="section">
+        <div class="section-head"><div class="section-title">Submit New Task</div></div>
+        <div class="section-body">
+          <div id="notClockedInMsg" style="display:none;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:12px;color:var(--warning);font-size:13px;margin-bottom:16px">⚠️ You must Clock In before submitting tasks.</div>
+          <div class="form-grid">
+            <div class="form-group"><div class="form-label">Title</div><input type="text" id="taskTitle" placeholder="Task title"></div>
+            <div class="form-group"><div class="form-label">Platform</div>
+              <select id="taskPlatform" onchange="updatePlatformInfo()">
+                <option value="">Select platform</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Twitter">Twitter/X</option>
+                <option value="YouTube">YouTube</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <div id="platformInfo" style="display:none" class="platform-info">
+                <div class="platform-info-title">Platform Guidelines</div>
+                <div id="platformInfoContent"></div>
+              </div>
+            </div>
+            <div class="form-group full"><div class="form-label">Description / Caption</div><textarea id="taskDesc" rows="5" placeholder="Write your content here..." oninput="checkDuplicate(this.value)"></textarea></div>
+            <div class="form-group full"><div class="form-label">Attach File (optional)</div><input type="file" id="taskFile" accept="image/*,video/*,.pdf"></div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="section" style="margin-top:20px">
+            <div class="section-head"><div class="section-title">✅ Pre-submission Checklist</div></div>
+            <div class="section-body">
+              <div id="checklistItems">
+                <div class="checklist-item"><input type="checkbox" id="chk1"><label for="chk1">Content follows brand tone and voice guidelines</label></div>
+                <div class="checklist-item"><input type="checkbox" id="chk2"><label for="chk2">Correct hashtags used as per brand guidelines</label></div>
+                <div class="checklist-item"><input type="checkbox" id="chk3"><label for="chk3">Caption is within platform character limit</label></div>
+                <div class="checklist-item"><input type="checkbox" id="chk4"><label for="chk4">Image/video meets platform size requirements</label></div>
+                <div class="checklist-item"><input type="checkbox" id="chk5"><label for="chk5">No forbidden words used</label></div>
+                <div class="checklist-item"><input type="checkbox" id="chk6"><label for="chk6">Content is original and not a duplicate</label></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="dupWarning" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:10px;color:var(--error);font-size:12px;margin-top:10px">⚠️ Possible duplicate detected — similar caption was submitted before. Please review.</div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn btn-outline" onclick="saveDraft()">Save Draft</button>
+            <button class="btn" onclick="submitTask(false)">Submit for Approval</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAPTION BUILDER -->
+      <div class="section">
+        <div class="section-head"><div class="section-title">📝 Caption Templates</div></div>
+        <div class="section-body" id="captionTemplates"><div style="color:var(--muted);font-size:13px">Loading templates...</div></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="tab-panel" id="tab-chat">
+      <div class="chat-box">
+        <div class="chat-header-bar">💬 Support Chat — <span style="color:var(--muted);font-size:12px">Messages go to admin/manager</span></div>
+        <div class="chat-messages" id="agentChatMessages"><div style="color:var(--muted);font-size:13px;text-align:center;margin-top:40px">Start a conversation with your manager</div></div>
+        <div class="chat-input-row">
+          <input type="text" id="agentChatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendAgentMsg()">
+          <button class="btn btn-sm" onclick="sendAgentMsg()">Send</button>
+          <a href="https://meet.jit.si/PlayDistro-Support" target="_blank" class="btn btn-sm btn-outline" title="Video Call">📹</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="tab-panel" id="tab-attendance">
+      <div class="section">
+        <div class="section-head"><div class="section-title">My Attendance History</div></div>
+        <div class="section-body">
+          <table class="tbl"><thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Tasks Done</th></tr></thead>
+          <tbody id="myAttTable"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="tab-panel" id="tab-announcements">
+      <div class="section">
+        <div class="section-head"><div class="section-title">Announcements</div></div>
+        <div class="section-body" id="agentAnnList"><div style="color:var(--muted);font-size:13px">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- BRAND GUIDELINES -->
+    <div class="tab-panel" id="tab-guidelines">
+      <div class="section">
+        <div class="section-head"><div class="section-title">Brand Guidelines</div></div>
+        <div class="section-body" id="agentGuidelines"><div style="color:var(--muted);font-size:13px">Loading...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOGOUT REPORT MODAL (required before logout) -->
+<div class="modal-bg" id="logoutModal">
+  <div class="modal">
+    <h2>📋 Daily Report — Required to Log Out</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Please complete your daily report before signing out.</p>
+    <div class="form-group" style="margin-bottom:14px">
+      <div class="form-label">Tasks Completed Today</div>
+      <textarea id="logoutTasks" placeholder="List the tasks you completed today..." rows="3"></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <div class="form-label">Any Issues or Blockers?</div>
+      <textarea id="logoutIssues" placeholder="Any problems encountered..." rows="2"></textarea>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Tomorrow's Plan</div>
+      <textarea id="logoutPlan" placeholder="What will you work on tomorrow..." rows="2"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('logoutModal')">Cancel</button>
+      <button class="btn" onclick="submitLogoutReport()">Submit & Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+let clockedIn = false;
+let currentAttendanceId = null;
+let timerInterval = null;
+let clockInTime = null;
+
+window.addEventListener('load', async () => {
+  currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
+  if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
+  document.getElementById('sidebarUser').textContent = currentUser.username;
+
+  // Check if already clocked in (same session)
+  const savedAtt = sessionStorage.getItem('pd_attendance');
+  if (savedAtt) {
+    const att = JSON.parse(savedAtt);
+    currentAttendanceId = att.id;
+    clockInTime = new Date(att.clock_in);
+    clockedIn = true;
+    updateClockBtn();
+    startTimer();
+  }
+
+  loadDashboard();
+  loadNotifications();
+  loadCaptionTemplates();
+  subscribeRealtime();
+});
+
+function showTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  const titles={dashboard:'Dashboard',tasks:'My Tasks',submit:'Submit Task',chat:'Chat Support',attendance:'My Attendance',announcements:'Announcements',guidelines:'Brand Guidelines'};
+  document.getElementById('pageTitle').textContent = titles[tab]||tab;
+  if (tab==='tasks') loadMyTasks();
+  if (tab==='attendance') loadMyAttendance();
+  if (tab==='announcements') loadAnnouncements();
+  if (tab==='guidelines') loadGuidelines();
+  if (tab==='chat') initChat();
+  if (tab==='submit') {
+    document.getElementById('notClockedInMsg').style.display = clockedIn?'none':'block';
+    loadCaptionTemplates();
+  }
+}
+
+// CLOCK IN/OUT
+async function toggleClock() {
+  if (!clockedIn) {
+    // CLOCK IN
+    const ip = await getIPAddress();
+    const device = getDevice();
+    const now = new Date();
+    const { data, error } = await sb.from('attendance').insert({
+      user_id: currentUser.id, username: currentUser.username,
+      clock_in: now.toISOString(), ip_address: ip, device: device
+    }).select().single();
+    if (error) { toast('Error clocking in','error'); return; }
+    currentAttendanceId = data.id;
+    clockInTime = now;
+    clockedIn = true;
+    sessionStorage.setItem('pd_attendance', JSON.stringify(data));
+    updateClockBtn(); startTimer();
+    toast('Clocked In! 🟢','success');
+    // Email
+    const pht = getPHTTime();
+    await sendEmail(`${currentUser.username} clocked IN`,
+      `Agent: ${currentUser.username}\nAction: Clock In\nDate: ${getPHTDate()}\nTime: ${pht}\nIP: ${ip}\nDevice: ${device}`);
+  } else {
+    // CLOCK OUT — show report modal first
+    openModal('logoutModal');
+  }
+}
+
+async function submitLogoutReport() {
+  const tasks = document.getElementById('logoutTasks').value.trim();
+  if (!tasks) { toast('Please describe your tasks completed','error'); return; }
+  const issues = document.getElementById('logoutIssues').value.trim();
+  const plan = document.getElementById('logoutPlan').value.trim();
+
+  const now = new Date();
+  const hoursWorked = clockInTime ? ((now - clockInTime) / 3600000).toFixed(2) : 0;
+
+  await sb.from('attendance').update({
+    clock_out: now.toISOString(),
+    hours_worked: parseFloat(hoursWorked)
+  }).eq('id', currentAttendanceId);
+
+  clearInterval(timerInterval);
+  clockedIn = false;
+  sessionStorage.removeItem('pd_attendance');
+  closeModal('logoutModal');
+  updateClockBtn();
+  document.getElementById('shiftTimerVal').textContent = '00:00:00';
+
+  // Email notification
+  const pht = getPHTTime();
+  await sendEmail(`${currentUser.username} clocked OUT`,
+    `Agent: ${currentUser.username}\nAction: Clock Out\nDate: ${getPHTDate()}\nTime: ${pht}\nHours Worked: ${hoursWorked}h\n\nTasks Completed:\n${tasks}\n\nIssues/Blockers:\n${issues||'None'}\n\nTomorrow's Plan:\n${plan||'Not specified'}`);
+
+  toast('Clocked out. Signing out in 3 seconds...','success');
+  await sb.from('users').update({ is_online: false }).eq('id', currentUser.id);
+  sessionStorage.clear();
+  setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+}
+
+function updateClockBtn() {
+  const btn = document.getElementById('clockBtn');
+  if (clockedIn) { btn.className='clock-btn out'; btn.textContent='🔴 Clock Out'; }
+  else { btn.className='clock-btn in'; btn.textContent='🟢 Clock In'; }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!clockInTime) return;
+    const diff = Date.now() - clockInTime.getTime();
+    const h = Math.floor(diff/3600000).toString().padStart(2,'0');
+    const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+    const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+    document.getElementById('shiftTimerVal').textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+
+// DASHBOARD
+async function loadDashboard() {
+  const today = new Date().toISOString().slice(0,10);
+  const { data: tasks } = await sb.from('tasks').select('*').eq('user_id', currentUser.id).gte('created_at', today);
+  const all = tasks||[];
+  document.getElementById('statToday').textContent = all.length;
+  document.getElementById('statApproved').textContent = all.filter(t=>t.status==='approved').length;
+  document.getElementById('statPending').textContent = all.filter(t=>t.status==='pending').length;
+  const total = all.length; const approved = all.filter(t=>t.status==='approved').length;
+  document.getElementById('statRate').textContent = total>0?Math.round(approved/total*100)+'%':'—';
+
+  const dashTasks = document.getElementById('dashTasks');
+  if (!all.length) { dashTasks.innerHTML='<div style="color:var(--muted);font-size:13px">No tasks submitted today</div>'; return; }
+  const sb2 = {pending:'badge-yellow',approved:'badge-green',rejected:'badge-red',revision:'badge-blue'};
+  dashTasks.innerHTML = all.map(t=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-size:13px;font-weight:500">${t.title}</div><div style="font-size:11px;color:var(--muted)">${t.platform||'—'} · ${formatPHT(t.created_at)}</div>
+    ${t.admin_note?`<div style="font-size:11px;color:var(--warning);margin-top:4px">Note: ${t.admin_note}</div>`:''}
+    </div>
+    <span class="badge ${sb2[t.status]||''}">${t.status}</span>
+  </div>`).join('');
+}
+
+// TASKS
+async function loadMyTasks() {
+  const filter = document.getElementById('myTaskFilter').value;
+  let q = sb.from('tasks').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+  if (filter!=='all') q = q.eq('status', filter);
+  const { data } = await q;
+  const tbody = document.getElementById('myTasksTable');
+  if (!data||data.length===0) { tbody.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">No tasks</td></tr>'; return; }
+  const sb2 = {pending:'badge-yellow',approved:'badge-green',rejected:'badge-red',revision:'badge-blue'};
+  tbody.innerHTML = data.map(t=>`<tr>
+    <td>${t.title} ${t.draft?'<span class="badge badge-blue">Draft</span>':''}</td>
+    <td>${t.platform||'—'}</td>
+    <td><span class="badge ${sb2[t.status]||''}">${t.status}</span></td>
+    <td style="font-size:12px;color:var(--warning)">${t.admin_note||'—'}</td>
+    <td style="font-size:11px;color:var(--muted)">${formatPHT(t.created_at)}</td>
+    <td>${t.status==='revision'||t.draft?`<button class="btn btn-sm" onclick="editTask('${t.id}')">Edit</button>`:'—'}</td>
+  </tr>`).join('');
+}
+
+async function editTask(id) {
+  const { data } = await sb.from('tasks').select('*').eq('id',id).single();
+  document.getElementById('taskTitle').value = data.title;
+  document.getElementById('taskPlatform').value = data.platform||'';
+  document.getElementById('taskDesc').value = data.description||'';
+  showTab('submit');
+  document.getElementById('tab-submit').scrollIntoView();
+  toast('Task loaded for editing — resubmit when ready','success');
+}
+
+// SUBMIT TASK
+async function submitTask(isDraft) {
+  if (!clockedIn && !isDraft) { toast('Clock in first before submitting tasks','error'); return; }
+  const title = document.getElementById('taskTitle').value.trim();
+  const platform = document.getElementById('taskPlatform').value;
+  const desc = document.getElementById('taskDesc').value.trim();
+  if (!title) { toast('Enter a task title','error'); return; }
+
+  if (!isDraft) {
+    // Check all checklist items
+    const checks = ['chk1','chk2','chk3','chk4','chk5','chk6'];
+    const allChecked = checks.every(c => document.getElementById(c).checked);
+    if (!allChecked) { toast('Please complete all checklist items before submitting','error'); return; }
+  }
+
+  const file = document.getElementById('taskFile').files[0];
+  let attachUrl = '';
+  if (file) {
+    const fn = `${currentUser.username}_${Date.now()}_${file.name}`;
+    const { data: up, error: uperr } = await sb.storage.from('attachments').upload(fn, file);
+    if (!uperr && up) {
+      const { data: urlData } = sb.storage.from('attachments').getPublicUrl(fn);
+      attachUrl = urlData.publicUrl;
+    }
+  }
+
+  await sb.from('tasks').insert({
+    user_id: currentUser.id, username: currentUser.username,
+    title, description: desc, platform, attachment_url: attachUrl,
+    status: isDraft?'pending':'pending', draft: isDraft,
+    attendance_id: currentAttendanceId
+  });
+
+  document.getElementById('taskTitle').value='';
+  document.getElementById('taskDesc').value='';
+  document.getElementById('taskFile').value='';
+  ['chk1','chk2','chk3','chk4','chk5','chk6'].forEach(c=>{ document.getElementById(c).checked=false; });
+  toast(isDraft?'Draft saved!':'Task submitted for approval!','success');
+  loadDashboard();
+}
+
+function saveDraft() { submitTask(true); }
+
+// DUPLICATE CHECK
+let dupTimeout;
+async function checkDuplicate(text) {
+  clearTimeout(dupTimeout);
+  if (text.length < 30) { document.getElementById('dupWarning').style.display='none'; return; }
+  dupTimeout = setTimeout(async () => {
+    const { data } = await sb.from('tasks').select('description').eq('user_id', currentUser.id).not('description','is',null);
+    const similar = (data||[]).some(t => t.description && similarity(t.description, text) > 0.7);
+    document.getElementById('dupWarning').style.display = similar?'block':'none';
+  }, 800);
+}
+
+function similarity(a, b) {
+  const s1 = a.toLowerCase().slice(0,100), s2 = b.toLowerCase().slice(0,100);
+  let common = 0;
+  s1.split(' ').forEach(w => { if (s2.includes(w) && w.length>3) common++; });
+  return common / Math.max(s1.split(' ').length, 1);
+}
+
+// PLATFORM INFO
+const platformData = {
+  Instagram:{chars:2200,hashtags:'Up to 30',image:'1080x1080 (square), 1080x1350 (portrait)'},
+  Facebook:{chars:63206,hashtags:'2-5 recommended',image:'1200x628'},
+  TikTok:{chars:2200,hashtags:'3-5 recommended',image:'1080x1920 (video)'},
+  Twitter:{chars:280,hashtags:'1-2 recommended',image:'1200x675'},
+  YouTube:{chars:5000,hashtags:'3-8 recommended',image:'1280x720 (thumbnail)'}
+};
+function updatePlatformInfo() {
+  const p = document.getElementById('taskPlatform').value;
+  const box = document.getElementById('platformInfo');
+  const content = document.getElementById('platformInfoContent');
+  if (platformData[p]) {
+    const d = platformData[p];
+    content.innerHTML = `<div style="font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap">
+      <span>📝 Chars: <strong style="color:var(--text)">${d.chars.toLocaleString()}</strong></span>
+      <span>#️⃣ Hashtags: <strong style="color:var(--text)">${d.hashtags}</strong></span>
+      <span>🖼 Size: <strong style="color:var(--text)">${d.image}</strong></span>
+    </div>`;
+    box.style.display='block';
+  } else { box.style.display='none'; }
+}
+
+// CAPTION TEMPLATES
+async function loadCaptionTemplates() {
+  const { data } = await sb.from('templates').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('captionTemplates');
+  if (!data||data.length===0) { el.innerHTML='<div style="color:var(--muted);font-size:13px">No templates yet — ask your admin to add some</div>'; return; }
+  el.innerHTML = data.map(t=>`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-weight:500;font-size:13px">${t.title} ${t.platform?`<span class="badge badge-blue">${t.platform}</span>`:''}</div>
+      <button class="btn btn-sm btn-outline" onclick="useTemplate('${t.id}')">Use</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted)">${t.content.slice(0,120)}${t.content.length>120?'...':''}</div>
+  </div>`).join('');
+}
+
+async function useTemplate(id) {
+  const { data } = await sb.from('templates').select('content').eq('id',id).single();
+  document.getElementById('taskDesc').value = data.content;
+  showTab('submit');
+  toast('Template loaded into description!','success');
+}
+
+// CHAT
+async function initChat() {
+  await loadAgentChat();
+  sb.channel('agent_chat_'+currentUser.username).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
+    if(payload.new.session_id===currentUser.username) renderAgentMsg(payload.new);
+  }).subscribe();
+}
+
+async function loadAgentChat() {
+  const { data } = await sb.from('chat_messages').select('*').eq('session_id', currentUser.username).order('created_at',{ascending:true});
+  const box = document.getElementById('agentChatMessages');
+  if (!data||data.length===0) { box.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;margin-top:40px">No messages yet. Say hello! 👋</div>'; return; }
+  box.innerHTML = data.map(m=>`<div>
+    <div class="msg-bubble ${m.from_username===currentUser.username?'mine':'theirs'}">
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:4px">${m.from_username}</div>
+      ${m.message}
+    </div>
+    <div class="msg-time" style="${m.from_username===currentUser.username?'text-align:right':''}">${formatPHT(m.created_at)}</div>
+  </div>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderAgentMsg(m) {
+  const box = document.getElementById('agentChatMessages');
+  if (box.querySelector('[style*="No messages"]')) box.innerHTML='';
+  const div = document.createElement('div');
+  div.innerHTML = `<div class="msg-bubble ${m.from_username===currentUser.username?'mine':'theirs'}">
+    <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:4px">${m.from_username}</div>
+    ${m.message}
+  </div><div class="msg-time" style="${m.from_username===currentUser.username?'text-align:right':''}">${formatPHT(m.created_at)}</div>`;
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+
+async function sendAgentMsg() {
+  const input = document.getElementById('agentChatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  await sb.from('chat_messages').insert({ from_username: currentUser.username, from_role: currentUser.role, message: msg, session_id: currentUser.username });
+  input.value = '';
+}
+
+// ATTENDANCE
+async function loadMyAttendance() {
+  const { data: atts } = await sb.from('attendance').select('*').eq('user_id', currentUser.id).order('clock_in',{ascending:false}).limit(30);
+  const tbody = document.getElementById('myAttTable');
+  if (!atts||atts.length===0) { tbody.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">No records</td></tr>'; return; }
+  const { data: tasks } = await sb.from('tasks').select('attendance_id,title,status').eq('user_id', currentUser.id);
+  const taskMap = {};
+  (tasks||[]).forEach(t=>{ if(!taskMap[t.attendance_id]) taskMap[t.attendance_id]=[]; taskMap[t.attendance_id].push(t); });
+  tbody.innerHTML = atts.map(a=>{
+    const tks = taskMap[a.id]||[];
+    return `<tr>
+      <td style="font-size:12px">${new Date(a.clock_in).toLocaleDateString('en-PH',{timeZone:'Asia/Manila'})}</td>
+      <td style="font-size:12px">${a.clock_in?formatPHT(a.clock_in):'—'}</td>
+      <td style="font-size:12px">${a.clock_out?formatPHT(a.clock_out):'—'}</td>
+      <td>${a.hours_worked?a.hours_worked+'h':'—'}</td>
+      <td style="font-size:12px">${tks.length?tks.map(t=>t.title).join(', '):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ANNOUNCEMENTS
+async function loadAnnouncements() {
+  const { data } = await sb.from('announcements').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('agentAnnList');
+  if (!data||data.length===0) { el.innerHTML='<div style="color:var(--muted);font-size:13px">No announcements</div>'; return; }
+  el.innerHTML = data.map(a=>`<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+    <div style="font-weight:500;margin-bottom:4px">${a.title}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.5">${a.body}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">Posted by ${a.created_by} · ${formatPHT(a.created_at)}</div>
+  </div>`).join('');
+}
+
+// GUIDELINES
+async function loadGuidelines() {
+  const { data } = await sb.from('brand_guidelines').select('*').order('updated_at',{ascending:false}).limit(1);
+  const el = document.getElementById('agentGuidelines');
+  if (data&&data.length) el.innerHTML = `<div style="font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--muted)">${data[0].content}</div>`;
+  else el.innerHTML='<div style="color:var(--muted);font-size:13px">No guidelines posted yet</div>';
+}
+
+// NOTIFICATIONS
+async function loadNotifications() {
+  const { data } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
+  const cnt = (data||[]).filter(n=>!n.is_read).length;
+  const el = document.getElementById('notifCount');
+  el.style.display = cnt>0?'flex':'none'; el.textContent = cnt;
+  const list = document.getElementById('notifList');
+  if (!data||data.length===0) { list.innerHTML='<div style="color:var(--muted);font-size:13px">No notifications</div>'; return; }
+  list.innerHTML = data.map(n=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
+    <div style="width:8px;height:8px;border-radius:50%;background:${n.is_read?'var(--muted)':'var(--purple)'};margin-top:5px;flex-shrink:0"></div>
+    <div><div style="font-size:13px">${n.message}</div><div style="font-size:11px;color:var(--muted)">${formatPHT(n.created_at)}</div></div>
+  </div>`).join('');
+  // Mark all as read
+  await sb.from('notifications').update({is_read:true}).eq('user_id', currentUser.id);
+}
+
+// REALTIME
+function subscribeRealtime() {
+  sb.channel('agent_notifs').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${currentUser.id}`},()=>{
+    loadNotifications(); loadDashboard(); toast('New notification!','success');
+  }).subscribe();
+}
+
+// LOGOUT
+function doLogout() {
+  if (clockedIn) { toast('Please clock out before signing out','error'); return; }
+  openModal('logoutModal');
+}
+
+// MODALS
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// TOAST
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className='toast show '+(type||'');
+  setTimeout(()=>t.className='toast',3000);
+}
+
+function formatPHT(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+}
+</script>
+</body>
+</html>
