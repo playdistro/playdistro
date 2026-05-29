@@ -656,7 +656,7 @@ function showChatNotif(from, msg) {
   clearTimeout(popup._timer);
   popup._timer = setTimeout(() => popup.remove(), 6000);
 }
-}
+
 async function sendAgentMsg() {
   const input = document.getElementById('agentChatInput');
   const msg = input.value.trim();
