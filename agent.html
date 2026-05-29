@@ -623,11 +623,6 @@ async function sendAgentMsg() {
   if (!msg) return;
   await sb.from('chat_messages').insert({ from_username: currentUser.username, from_role: currentUser.role, message: msg, session_id: currentUser.username });
   input.value = '';
-  // Email notification to admin
-  await sendEmail(
-    `💬 New message from ${currentUser.username}`,
-    `Agent: ${currentUser.username}\nMessage: ${msg}\nTime: ${getPHTTime()}\n\nClick below to reply in the portal.`
-  );
 }
 
 // ATTENDANCE
