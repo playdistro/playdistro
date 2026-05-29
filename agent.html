@@ -409,8 +409,11 @@ let clockedIn = false;
 let currentAttendanceId = null;
 let timerInterval = null;
 let clockInTime = null;
+let schedPosts = [];
+let schedCalDate = new Date();
+let schedEditIdx = -1;
 
-Window.addEventListener('load', async () => {
+window.addEventListener('load', async () => {
   Notification.requestPermission();
   currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
   if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
