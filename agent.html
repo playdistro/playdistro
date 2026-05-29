@@ -1031,8 +1031,8 @@ function renderSchedQueue(){
         <div class="sched-publish-btns">${getPublishBtns(p)}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="btn btn-sm btn-outline" onclick="openSchedModal(${i})">Edit</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteSchedPost(${i})">Delete</button>
+       
+   
         ${p.status!=='Posted'?`<button class="btn btn-sm" style="background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:var(--success)" onclick="markPosted(${i})">✓ Posted</button>`:''}
       </div>
     </div>`;
