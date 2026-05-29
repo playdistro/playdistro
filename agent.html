@@ -341,8 +341,9 @@ textarea{resize:vertical;min-height:80px}
     <option value="09">September</option><option value="10">October</option>
     <option value="11">November</option><option value="12">December</option>
   </select>
-  <select id="sched-day" style=""></select>
-  <select id="sched-year" style=""></select>
+  <select id="sched-day"></select>
+  <select id="sched-year"></select>
+</div>
 </div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
   <select id="sched-hour">
@@ -357,27 +358,8 @@ textarea{resize:vertical;min-height:80px}
     <option>AM</option><option>PM</option>
   </select>
 </div>
-  <option value="01">January</option><option value="02">February</option>
-  <option value="03">March</option><option value="04">April</option>
-  <option value="05">May</option><option value="06">June</option>
-  <option value="07">July</option><option value="08">August</option>
-  <option value="09">September</option><option value="10">October</option>
-  <option value="11">November</option><option value="12">December</option>
-</select>
-<select id="sched-day" style="width:70px"></select>
-<select id="sched-year" style="width:80px"></select>
-  <select id="sched-hour" style="width:80px">
-    <option>06</option><option>07</option><option>08</option><option>09</option>
-    <option>10</option><option>11</option><option>12</option><option>01</option>
-    <option>02</option><option>03</option><option>04</option><option>05</option>
-  </select>
-  <select id="sched-min" style="width:70px">
-    <option>00</option><option>15</option><option>30</option><option>45</option>
-  </select>
-  <select id="sched-ampm" style="width:70px">
-    <option>AM</option><option>PM</option>
-  </select>
-  </div>
+ 
+
   </div>
       <div class="form-group">
         <div class="form-label">Status</div>
@@ -398,7 +380,13 @@ textarea{resize:vertical;min-height:80px}
             <option value="Caption Only">Caption Only</option>
           </select>
         </div>
-        <div style="font-size:13px;color:var(--text);margin-bottom:12px;font-weight:500">Have you already uploaded the file to the PlayDistro Google Drive?</div>
+        <div style="margin-bottom:14px">
+   <a href="https://drive.google.com/drive/folders/1a7IAoOpdmKRAwm-TfCnKkR0yL10TGzll" target="_blank" class="btn" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin-bottom:8px">
+    📁 Open Play Distro Content Folder
+  </a>
+  <div style="font-size:11px;color:var(--muted);margin-top:4px">Upload your file there first, then come back and confirm below.</div>
+</div>
+<div style="font-size:13px;color:var(--text);margin-bottom:12px;font-weight:500">Have you already uploaded the file to the PlayDistro Google Drive?</div>
         <div style="display:flex;gap:16px;margin-bottom:14px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
             <input type="radio" name="drive-uploaded" id="drive-yes" value="yes" onchange="toggleDriveFields()" style="width:16px;height:16px;accent-color:var(--purple)">
