@@ -625,11 +625,11 @@ async function loadChatMessages(agentUsername) {
   const box = document.getElementById('chatMessages');
   if (!data||data.length===0) { box.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;margin-top:40px">No messages yet</div>'; return; }
   box.innerHTML = data.map(m=>`<div>
-    <div class="msg-bubble ${m.from_username===currentUser.username?'admin':'agent'}">
+    <div class="msg-bubble ${m.from_role==='admin'||m.from_role==='supervisor'?'admin':'agent'}">
       <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:4px">${m.from_username}</div>
       ${m.message}
     </div>
-    <div class="msg-time" style="${m.from_username===currentUser.username?'text-align:right':''}">${formatPHT(m.created_at)}</div>
+    <div class="msg-time" style="${m.from_role==='admin'||m.from_role==='supervisor'?'text-align:right':''}">${formatPHT(m.created_at)}</div>
   </div>`).join('');
   box.scrollTop = box.scrollHeight;
 }
