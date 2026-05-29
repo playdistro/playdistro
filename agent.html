@@ -410,7 +410,7 @@ let currentAttendanceId = null;
 let timerInterval = null;
 let clockInTime = null;
 
-wWindow.addEventListener('load', async () => {
+Window.addEventListener('load', async () => {
   Notification.requestPermission();
   currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
   if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
