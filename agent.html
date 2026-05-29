@@ -240,7 +240,7 @@ textarea{resize:vertical;min-height:80px}
         <div class="chat-input-row">
           <input type="text" id="agentChatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendAgentMsg()">
           <button class="btn btn-sm" onclick="sendAgentMsg()">Send</button>
-          <a href="https://meet.jit.si/PlayDistro-Support" target="_blank" class="btn btn-sm btn-outline" title="Video Call">📹</a>
+          <a id="videoCallBtn" href="#" target="_blank" class="btn btn-sm btn-outline" title="Video Call">📹 Video Call</a>
         </div>
       </div>
     </div>
@@ -314,7 +314,8 @@ window.addEventListener('load', async () => {
   currentUser = JSON.parse(sessionStorage.getItem('pd_user') || 'null');
   if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
   document.getElementById('sidebarUser').textContent = currentUser.username;
-
+  document.getElementById('videoCallBtn').href = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
+  
   // Check if already clocked in (same session)
   const savedAtt = sessionStorage.getItem('pd_attendance');
   if (savedAtt) {
@@ -657,6 +658,16 @@ function showChatNotif(from, msg) {
   popup._timer = setTimeout(() => popup.remove(), 6000);
 }
 
+  async function requestVideoCall() {
+  const room = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
+  await sb.from('chat_messages').insert({ 
+    from_username: currentUser.username, 
+    from_role: currentUser.role, 
+    message: '📹 Video call request — join here: ' + room, 
+    session_id: currentUser.username 
+  });
+  toast('Call request sent to admin!', 'success');
+}
 async function sendAgentMsg() {
   const input = document.getElementById('agentChatInput');
   const msg = input.value.trim();
