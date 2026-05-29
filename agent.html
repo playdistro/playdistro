@@ -333,7 +333,16 @@ textarea{resize:vertical;min-height:80px}
       <div class="form-group">
         <div class="form-label">Schedule Date & Time</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-  <input type="date" id="sched-date" style="flex:1">
+  <select id="sched-month" style="width:110px">
+  <option value="01">January</option><option value="02">February</option>
+  <option value="03">March</option><option value="04">April</option>
+  <option value="05">May</option><option value="06">June</option>
+  <option value="07">July</option><option value="08">August</option>
+  <option value="09">September</option><option value="10">October</option>
+  <option value="11">November</option><option value="12">December</option>
+</select>
+<select id="sched-day" style="width:70px"></select>
+<select id="sched-year" style="width:80px"></select>
   <select id="sched-hour" style="width:80px">
     <option>06</option><option>07</option><option>08</option><option>09</option>
     <option>10</option><option>11</option><option>12</option><option>01</option>
@@ -419,6 +428,7 @@ window.addEventListener('load', async () => {
   if (!currentUser || currentUser.role !== 'agent') { window.location.href = 'index.html'; return; }
   document.getElementById('sidebarUser').textContent = currentUser.username;
   schedPosts = JSON.parse(localStorage.getItem('pd_sched_'+currentUser.id)||'[]');
+  initSchedDateDropdowns();
   document.getElementById('videoCallBtn').href = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
   
   // Check if already clocked in (same session)
@@ -869,6 +879,14 @@ function toast(msg, type='success') {
 }
 // ===== SCHEDULER =====
 
+function initSchedDateDropdowns(){
+  const dayEl=document.getElementById('sched-day');
+  const yearEl=document.getElementById('sched-year');
+  for(let d=1;d<=31;d++) dayEl.innerHTML+=`<option value="${String(d).padStart(2,'0')}">${d}</option>`;
+  const yr=new Date().getFullYear();
+  for(let y=yr;y<=yr+2;y++) yearEl.innerHTML+=`<option value="${y}">${y}</option>`;
+}
+
 
 function saveSchedPosts(){ localStorage.setItem('pd_sched_'+(currentUser&&currentUser.id||'x'), JSON.stringify(schedPosts)); }
 
@@ -891,14 +909,19 @@ function toggleSchedPill(el){
 }
 function openSchedModalOnDate(dateStr){
   openSchedModal();
-  document.getElementById('sched-date').value=dateStr;
+  const parts=dateStr.split('-');
+  document.getElementById('sched-year').value=parts[0];
+  document.getElementById('sched-month').value=parts[1];
+  document.getElementById('sched-day').value=parts[2];
 }
 function openSchedModal(idx){
 
   schedEditIdx = idx !== undefined ? idx : -1;
   document.querySelectorAll('.sched-pill').forEach(p=>p.classList.remove('active'));
   document.getElementById('sched-caption').value='';
-  document.getElementById('sched-date').value='';
+  document.getElementById('sched-month').value='01';
+  document.getElementById('sched-day').value='01';
+  document.getElementById('sched-year').value=new Date().getFullYear();
   document.getElementById('sched-status').value='Scheduled';
   if(schedEditIdx>=0){
     const p=schedPosts[schedEditIdx];
@@ -908,7 +931,10 @@ function openSchedModal(idx){
     });
     document.getElementById('sched-caption').value=p.caption;
     const dt=new Date(p.datetime);
-    document.getElementById('sched-date').value=p.datetime.slice(0,10);
+    const parts=p.datetime.slice(0,10).split('-');
+    document.getElementById('sched-year').value=parts[0];
+    document.getElementById('sched-month').value=parts[1];
+    document.getElementById('sched-day').value=parts[2];
     let ph=dt.getHours(); const pAmpm=ph>=12?'PM':'AM'; ph=ph%12||12;
     document.getElementById('sched-hour').value=String(ph).padStart(2,'0');
     document.getElementById('sched-ampm').value=pAmpm;
@@ -925,7 +951,10 @@ function saveSchedPost(){
   const ampm=document.getElementById('sched-ampm').value;
   if(ampm==='PM'&&h!==12) h+=12;
   if(ampm==='AM'&&h===12) h=0;
-  const datetime=document.getElementById('sched-date').value+'T'+String(h).padStart(2,'0')+':'+min;
+  const month=document.getElementById('sched-month').value;
+  const day=document.getElementById('sched-day').value;
+  const year=document.getElementById('sched-year').value;
+  const datetime=`${year}-${month}-${day}T${String(h).padStart(2,'0')}:${min}`;
   const status=document.getElementById('sched-status').value;
   if(!platforms.length){ toast('Select at least one platform','error'); return; }
   if(!caption){ toast('Write a caption','error'); return; }
@@ -980,7 +1009,7 @@ function renderSchedCal(){
 
 function getPublishBtns(post){
   return post.platforms.map(pl=>{
-    if(pl==='Facebook/Instagram') return `<a href="https://business.facebook.com" target="_blank" class="btn btn-sm" style="background:rgba(24,119,242,0.2);border:1px solid rgba(24,119,242,0.4);color:#60a5fa;text-decoration:none">📘 Open Meta Suite</a>`;
+   if(pl==='Facebook/Instagram') return `<a href="https://www.facebook.com" target="_blank" class="btn btn-sm" style="background:rgba(24,119,242,0.2);border:1px solid rgba(24,119,242,0.4);color:#60a5fa;text-decoration:none">📘 Open Facebook</a>`;
     if(pl==='TikTok') return `<a href="https://www.tiktok.com/tiktokstudio/upload" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);text-decoration:none">🎵 TikTok Studio</a>`;
     if(pl==='YouTube') return `<a href="https://studio.youtube.com" target="_blank" class="btn btn-sm" style="background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#f87171;text-decoration:none">▶️ YouTube Studio</a>`;
     return '';
