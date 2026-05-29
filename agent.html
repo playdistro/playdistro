@@ -902,7 +902,7 @@ function switchSchedTab(t){
 function toggleSchedPill(el){
   el.classList.toggle('active');
   if(el.classList.contains('active')){
-    const urls={'Facebook/Instagram':'https://business.facebook.com','TikTok':'https://www.tiktok.com/tiktokstudio/upload','YouTube':'https://studio.youtube.com'};
+    const urls={'Facebook/Instagram':'https://www.facebook.com','TikTok':'https://www.tiktok.com/upload','YouTube':'https://studio.youtube.com'};
     const url=urls[el.dataset.p];
     if(url) window.open(url,'_blank');
   }
@@ -1010,8 +1010,8 @@ function renderSchedCal(){
 function getPublishBtns(post){
   return post.platforms.map(pl=>{
    if(pl==='Facebook/Instagram') return `<a href="https://www.facebook.com" target="_blank" class="btn btn-sm" style="background:rgba(24,119,242,0.2);border:1px solid rgba(24,119,242,0.4);color:#60a5fa;text-decoration:none">📘 Open Facebook</a>`;
-    if(pl==='TikTok') return `<a href="https://www.tiktok.com/tiktokstudio/upload" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);text-decoration:none">🎵 TikTok Studio</a>`;
-    if(pl==='YouTube') return `<a href="https://studio.youtube.com" target="_blank" class="btn btn-sm" style="background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#f87171;text-decoration:none">▶️ YouTube Studio</a>`;
+   if(pl==='TikTok') return `<a href="https://www.tiktok.com/upload" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);text-decoration:none">🎵 TikTok Upload</a>`;
+   if(pl==='YouTube') return `<a href="https://studio.youtube.com" target="_blank" class="btn btn-sm" style="background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#f87171;text-decoration:none">▶️ YouTube Studio</a>`;
     return '';
   }).join('');
 }
