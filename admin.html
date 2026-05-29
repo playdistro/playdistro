@@ -10,9 +10,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#050505;--surface:#0d0d0d;--surface2:#111;--border:#1e1e1e;--purple:#a855f7;--purple-dark:#7c3aed;--text:#f0f0f0;--muted:#666;--error:#f87171;--success:#4ade80;--warning:#fbbf24;--info:#60a5fa}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;height:100vh;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;height:100vh;overflow:auto}
 /* SIDEBAR */
-.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0}
+.sidebar{width:200px;min-width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0}
 .brand{padding:0 20px 20px;border-bottom:1px solid var(--border)}
 .brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .brand-role{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
@@ -90,7 +90,7 @@ textarea{resize:vertical;min-height:80px}
 .modal h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 /* CHAT */
-.chat-container{display:grid;grid-template-columns:200px 1fr;gap:0;height:500px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.chat-container{display:grid;grid-template-columns:200px 1fr;gap:0;height:400px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .chat-sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto}
 .chat-agent{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background 0.15s}
 .chat-agent:hover,.chat-agent.active{background:rgba(168,85,247,0.08)}
