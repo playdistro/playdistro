@@ -620,22 +620,42 @@ function renderAgentMsg(m) {
 }
 function playNotifSound() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.connect(g); g.connect(ctx.destination);
-  o.frequency.setValueAtTime(880, ctx.currentTime);
-  o.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-  g.gain.setValueAtTime(0.3, ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-  o.start(ctx.currentTime);
-  o.stop(ctx.currentTime + 0.4);
+  [0, 0.25, 0.5].forEach(delay => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(1200, ctx.currentTime + delay);
+    o.frequency.setValueAtTime(1500, ctx.currentTime + delay + 0.1);
+    g.gain.setValueAtTime(0.5, ctx.currentTime + delay);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.2);
+    o.start(ctx.currentTime + delay);
+    o.stop(ctx.currentTime + delay + 0.2);
+  });
 }
 
 function showChatNotif(from, msg) {
   playNotifSound();
+  // Browser notification
   if (Notification.permission === 'granted') {
-    new Notification('New message from ' + from, { body: msg, icon: '' });
+    new Notification('💬 New message from ' + from, { body: msg, icon: '' });
   }
+  // On-screen popup toast
+  let popup = document.getElementById('chatPopupToast');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'chatPopupToast';
+    popup.style.cssText = 'position:fixed;top:20px;right:20px;background:#1a1a2e;border:2px solid #a855f7;border-radius:12px;padding:16px 20px;z-index:9999;font-size:14px;color:#fff;box-shadow:0 0 20px rgba(168,85,247,0.5);max-width:280px;cursor:pointer;transition:all 0.3s';
+    popup.onclick = () => popup.remove();
+    document.body.appendChild(popup);
+  }
+  popup.innerHTML = `<div style="font-size:11px;color:#a855f7;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">💬 New Message</div>
+    <div style="font-weight:600;margin-bottom:2px">${from}</div>
+    <div style="color:#ccc;font-size:13px">${msg}</div>
+    <div style="font-size:10px;color:#666;margin-top:6px">Click to dismiss</div>`;
+  popup.style.display = 'block';
+  clearTimeout(popup._timer);
+  popup._timer = setTimeout(() => popup.remove(), 6000);
+}
 }
 async function sendAgentMsg() {
   const input = document.getElementById('agentChatInput');
