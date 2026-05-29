@@ -229,7 +229,10 @@ textarea{resize:vertical;min-height:80px}
       <div class="chat-container">
         <div class="chat-sidebar" id="chatAgentList"><div style="padding:16px;color:var(--muted);font-size:13px">Loading agents...</div></div>
         <div class="chat-main">
-          <div class="chat-header" id="chatHeader">Select an agent to chat</div>
+        <div class="chat-header" id="chatHeader" style="display:flex;align-items:center;justify-content:space-between">
+          <span id="chatHeaderText">Select an agent to chat</span>
+          <a id="adminVideoBtn" href="#" target="_blank" class="btn btn-sm btn-outline" style="display:none">📹 Video Call</a>
+        </div>    
           <div class="chat-messages" id="chatMessages"><div style="color:var(--muted);font-size:13px;text-align:center;margin-top:40px">Select an agent to view conversation</div></div>
           <div class="chat-input-row">
             <input type="text" id="chatInput" placeholder="Type a reply..." onkeydown="if(event.key==='Enter')sendAdminMsg()">
@@ -649,7 +652,9 @@ async function loadChatAgents() {
 let chatSub = null;
 async function selectChatAgent(username) {
   selectedChatAgent = username;
-  document.getElementById('chatHeader').textContent = `Chat with ${username}`;
+  document.getElementById('chatHeaderText').textContent = `Chat with ${username}`;
+  document.getElementById('adminVideoBtn').href = 'https://meet.jit.si/PlayDistro-' + username;
+  document.getElementById('adminVideoBtn').style.display = 'inline-block';
   loadChatAgents();
   await loadChatMessages(username);
   if (chatSub) chatSub.unsubscribe();
