@@ -943,7 +943,7 @@ function openSchedModal(idx){
   openModal('schedModal');
 }
 
-function saveSchedPost(){
+async function saveSchedPost(){
   const platforms=[...document.querySelectorAll('.sched-pill.active')].map(p=>p.dataset.p);
   const caption=document.getElementById('sched-caption').value.trim();
   let h=parseInt(document.getElementById('sched-hour').value);
@@ -959,26 +959,22 @@ function saveSchedPost(){
   if(!platforms.length){ toast('Select at least one platform','error'); return; }
   if(!caption){ toast('Write a caption','error'); return; }
   if(!datetime){ toast('Set a date and time','error'); return; }
-  const post={platforms,caption,datetime,status,by:currentUser.username};
-  if(schedEditIdx>=0) schedPosts[schedEditIdx]=post;
-  else schedPosts.push(post);
-  schedPosts.sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
-  saveSchedPosts();
-  closeModal('schedModal');
-  renderSchedCal();
-  renderSchedQueue();
-  toast('Post saved!','success');
-}
-
-function deleteSchedPost(i){
-  if(!confirm('Delete this scheduled post?')) return;
-  schedPosts.splice(i,1);
-  saveSchedPosts();
-  renderSchedCal();
-  renderSchedQueue();
-  toast('Deleted','success');
-}
-
+  await sb.from('scheduled_posts').insert({
+  user_id:currentUser.id,
+  username:currentUser.username,
+  platforms,
+  caption,
+  scheduled_datetime:datetime,
+  status,
+  url
+});
+await loadSchedPosts();
+closeModal('schedModal');
+renderSchedCal();
+renderSchedQueue();
+toast('Post saved!','success');
+await sendEmail(`📅 Post Scheduled by ${currentUser.username}`,`Platform: ${platforms.join(', ')}\nDate: ${datetime}\nCaption: ${caption}${url?'\nURL: '+url:''}`);
+  
 function schedChangeMonth(d){ schedCalDate.setMonth(schedCalDate.getMonth()+d); renderSchedCal(); }
 
 function renderSchedCal(){
@@ -989,7 +985,7 @@ function renderSchedCal(){
   for(let i=0;i<first;i++) html+=`<div class="sched-cell"></div>`;
   for(let d=1;d<=total;d++){
     const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
-    const dayPosts=schedPosts.filter(p=>{ const pd=new Date(p.datetime); return pd.getFullYear()===y&&pd.getMonth()===m&&pd.getDate()===d; });
+    const dayPosts=schedPosts.filter(p=>{ const pd=new Date(p.scheduled_datetime); return pd.getFullYear()===y&&pd.getMonth()===m&&pd.getDate()===d; });
     let dots=dayPosts.map(p=>{
       const idx=schedPosts.indexOf(p);
       let cls='sched-dot-multi';
@@ -999,7 +995,7 @@ function renderSchedCal(){
         else if(p.platforms[0]==='YouTube') cls='sched-dot-yt';
       }
       const label=p.platforms.length>1?'Multi':p.platforms[0].split('/')[0];
-      return `<div class="sched-dot ${cls}" onclick="openSchedModal(${idx})">${label}</div>`;
+      return `<div class="sched-dot ${cls}">${label}</div>`;
     }).join('');
     const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   html+=`<div class="sched-cell${isToday?' today':''}" onclick="openSchedModalOnDate('${dateStr}')"><div class="sched-day">${d}</div>${dots}</div>`;
@@ -1020,7 +1016,7 @@ function renderSchedQueue(){
   const el=document.getElementById('sched-queue-items');
   if(!schedPosts.length){ el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px">No posts scheduled yet. Click + New Post!</div>'; return; }
   el.innerHTML=schedPosts.map((p,i)=>{
-    const dt=new Date(p.datetime).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+    const dt=new Date(p.scheduled_datetime).toLocaleString('en-PH',
     const platBadges=p.platforms.map(pl=>`<span class="badge badge-purple">${pl}</span>`).join(' ');
     const statusColor=p.status==='Posted'?'badge-green':'badge-yellow';
     return `<div class="sched-queue-card">
@@ -1028,6 +1024,7 @@ function renderSchedQueue(){
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">${platBadges}<span class="badge ${statusColor}">${p.status}</span></div>
         <div style="font-size:13px;margin-bottom:4px">${p.caption.slice(0,120)}${p.caption.length>120?'...':''}</div>
         <div style="font-size:11px;color:var(--muted)">📅 ${dt} · by ${p.by||'—'}</div>
+        ${p.url?`<div style="font-size:11px;margin-top:4px"><a href="${p.url}" target="_blank" style="color:var(--purple)">🔗 View Content</a></div>`:''}
         <div class="sched-publish-btns">${getPublishBtns(p)}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -1039,12 +1036,14 @@ function renderSchedQueue(){
   }).join('');
 }
 
-function markPosted(i){
-  schedPosts[i].status='Posted';
-  saveSchedPosts();
+async function markPosted(i){
+  const post=schedPosts[i];
+  await sb.from('scheduled_posts').update({status:'Posted'}).eq('id',post.id);
+  await loadSchedPosts();
   renderSchedQueue();
   renderSchedCal();
   toast('Marked as Posted ✅','success');
+  await sendEmail(`✅ Post Marked as Posted by ${currentUser.username}`,`Platform: ${post.platforms.join(', ')}\nCaption: ${post.caption}\nDateTime: ${post.scheduled_datetime}`);
 }
 // ===== END SCHEDULER =====
 
