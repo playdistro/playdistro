@@ -240,7 +240,8 @@ textarea{resize:vertical;min-height:80px}
         <div class="chat-input-row">
           <input type="text" id="agentChatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendAgentMsg()">
           <button class="btn btn-sm" onclick="sendAgentMsg()">Send</button>
-          <a id="videoCallBtn" href="#" target="_blank" class="btn btn-sm btn-outline" title="Video Call">📹 Video Call</a>
+          <button class="btn btn-sm btn-outline" onclick="requestVideoCall('video')" title="Video Call">📹 Video</button>
+          <button class="btn btn-sm btn-outline" onclick="requestVideoCall('audio')" title="Audio Call">🎙️ Audio</button>
         </div>
       </div>
     </div>
@@ -658,15 +659,20 @@ function showChatNotif(from, msg) {
   popup._timer = setTimeout(() => popup.remove(), 6000);
 }
 
-  async function requestVideoCall() {
+  async function requestVideoCall(type) {
   const room = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
-  await sb.from('chat_messages').insert({ 
-    from_username: currentUser.username, 
-    from_role: currentUser.role, 
-    message: '📹 Video call request — join here: ' + room, 
-    session_id: currentUser.username 
+  const url = type === 'audio'
+    ? room + '#config.startWithVideoMuted=true&config.startWithAudioMuted=false'
+    : room;
+  const label = type === 'audio' ? '🎙️ Audio call' : '📹 Video call';
+  await sb.from('chat_messages').insert({
+    from_username: currentUser.username,
+    from_role: currentUser.role,
+    message: `${label} request — join here: ${url}`,
+    session_id: currentUser.username
   });
-  toast('Call request sent to admin!', 'success');
+  window.open(url, '_blank');
+  toast(`${label} started — admin notified!`, 'success');
 }
 async function sendAgentMsg() {
   const input = document.getElementById('agentChatInput');
