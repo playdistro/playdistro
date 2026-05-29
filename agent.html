@@ -127,6 +127,7 @@ textarea{resize:vertical;min-height:80px}
     <div class="nav-item" onclick="showTab('attendance')"><span>🕐</span> My Attendance</div>
     <div class="nav-item" onclick="showTab('announcements')"><span>📢</span> Announcements</div>
     <div class="nav-item" onclick="showTab('guidelines')"><span>📋</span> Brand Guidelines</div>
+    <div class="nav-item" onclick="showTab('scheduler')"><span>📅</span> Social Scheduler</div>
   </nav>
   <div class="sidebar-bottom">
     <div class="shift-timer" id="shiftTimerBox">
@@ -347,7 +348,7 @@ textarea{resize:vertical;min-height:80px}
     </div>
   </div>
 </div>
-    <!-- BRAND GUIDELINES -->
+  <!-- BRAND GUIDELINES -->
     <div class="tab-panel" id="tab-guidelines">
       <div class="section">
         <div class="section-head"><div class="section-title">Brand Guidelines</div></div>
@@ -425,13 +426,14 @@ function showTab(tab) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   if (event && event.currentTarget) event.currentTarget.classList.add('active');
-  const titles={dashboard:'Dashboard',tasks:'My Tasks',scheduler:'Social Scheduler',
+const titles={dashboard:'Dashboard',tasks:'My Tasks',scheduler:'Social Scheduler',submit:'Submit Task',chat:'Chat Support',attendance:'My Attendance',announcements:'Announcements',guidelines:'Brand Guidelines'};
   document.getElementById('pageTitle').textContent = titles[tab]||tab;
   if (tab==='tasks') loadMyTasks();
   if (tab==='attendance') loadMyAttendance();
   if (tab==='announcements') loadAnnouncements();
   if (tab==='guidelines') loadGuidelines();
   if (tab==='chat') initChat();
+  if (tab==='scheduler'){ renderSchedCal(); renderSchedQueue(); }
   if (tab==='submit') {
     document.getElementById('notClockedInMsg').style.display = clockedIn?'none':'block';
     loadCaptionTemplates();
@@ -675,7 +677,7 @@ async function useTemplate(id) {
 
 // CHAT
 async function initChat() {
-    if (tab==='scheduler'){ renderSchedCal(); renderSchedQueue(); }
+  
   await loadAgentChat();
   sb.channel('agent_chat_'+currentUser.username).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
     if(payload.new.session_id===currentUser.username) renderAgentMsg(payload.new);
