@@ -76,7 +76,11 @@
 </div>
 
 <script>
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function sendEmail(subject, body) {
+  await sb.functions.invoke('notify-email', {
+    body: { subject, body }
+  });
+}
 
 async function doLogin() {
   const portal = document.getElementById('portalType').value;
@@ -103,9 +107,13 @@ async function doLogin() {
   sessionStorage.setItem('pd_user', JSON.stringify(user));
   sessionStorage.setItem('pd_portal', portal);
 
-  // Update online status
-  await sb.from('users').update({ is_online: true }).eq('id', user.id);
-
+ // Update online status
+    await sb.from('users').update({ is_online: true }).eq('id', user.id);
+    await sendEmail(
+      `${user.username} logged in — PlayDistro`,
+      `Username: ${user.username}\nRole: ${user.role}\nPortal: ${portal}\nTime: ${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}`
+    );
+  
   if (user.must_change_password) {
     window.location.href = 'change-password.html';
   } else if (user.role === 'admin' || user.role === 'supervisor') {
