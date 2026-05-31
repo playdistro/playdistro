@@ -490,10 +490,35 @@ window.addEventListener('load', async () => {
 
   loadDashboard();
   loadNotifications();
+  checkScheduledAlerts();
   loadCaptionTemplates();
   subscribeRealtime();
 });
+async function checkScheduledAlerts() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const { data } = await sb.from('scheduled_posts')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('status','Scheduled');
+  if (!data || !data.length) return;
+  const overdue = data.filter(p => new Date(p.scheduled_datetime) < now && p.scheduled_datetime.slice(0,10) !== todayStr);
+  const today = data.filter(p => p.scheduled_datetime.slice(0,10) === todayStr);
+  if (!overdue.length && !today.length) return;
+  let msg = '';
+  if (today.length) msg += `📅 You have <b>${today.length} post(s) due TODAY</b> that need to be marked as Posted.<br>`;
+  if (overdue.length) msg += `⚠️ You have <b>${overdue.length} overdue post(s)</b> not yet marked as Posted.`;
+  let banner = document.getElementById('schedAlertBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'schedAlertBanner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#7c3aed;color:#fff;padding:14px 20px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:12px';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `<span>${msg}</span><button onclick="showTab('scheduler');document.getElementById('schedAlertBanner').remove()" style="background:#fff;color:#7c3aed;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap">Go to Scheduler →</button>`;
+}
 
+  
 function showTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
