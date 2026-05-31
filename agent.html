@@ -362,13 +362,7 @@ textarea{resize:vertical;min-height:80px}
  
 
   </div>
-      <div class="form-group">
-        <div class="form-label">Status</div>
-        <select id="sched-status">
-          <option value="Scheduled">Scheduled</option>
-          <option value="Posted">Posted</option>
-        </select>
-     </div>
+      
       <div class="form-group full" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:14px;margin-top:4px">
         <div class="form-label" style="color:var(--purple);margin-bottom:10px">📁 Google Drive File Verification</div>
         <div class="form-group full" style="margin-bottom:12px">
@@ -1040,7 +1034,7 @@ async function saveSchedPost(){
   const day=document.getElementById('sched-day').value;
   const year=document.getElementById('sched-year').value;
   const datetime=`${year}-${month}-${day}T${String(h).padStart(2,'0')}:${min}`;
-  const status=document.getElementById('sched-status').value;
+  const status='Scheduled';
  if(!platforms.length){ toast('Select at least one platform','error'); return; }
  if(!caption){ toast('Write a caption','error'); return; }
  if(!datetime){ toast('Set a date and time','error'); return; }
@@ -1143,12 +1137,27 @@ function renderSchedQueue(){
 
 async function markPosted(i){
   const post=schedPosts[i];
-  await sb.from('scheduled_posts').update({status:'Posted'}).eq('id',post.id);
+  await sb.from('scheduled_posts').update({status:'Posted', posted_at: new Date().toISOString()}).eq('id',post.id);
   await loadSchedPosts();
   renderSchedQueue();
   renderSchedCal();
   toast('Marked as Posted ✅','success');
-  await sendEmail(`✅ Post Marked as Posted by ${currentUser.username}`,`Platform: ${post.platforms.join(', ')}\nCaption: ${post.caption}\nDateTime: ${post.scheduled_datetime}`);
+  // Email to agent
+  try {
+    await sb.functions.invoke('notify-email', { body: { 
+      to: currentUser.email || 'playdistroph@gmail.com',
+      subject: `✅ Your Post is Now Live — PlayDistro`,
+      html: `<div style="font-family:sans-serif;padding:32px"><div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:20px;border-radius:12px;margin-bottom:20px"><h2 style="margin:0;color:#fff">✅ Post Marked as Posted</h2></div><p><b>Platform:</b> ${post.platforms.join(', ')}</p><p><b>Caption:</b> ${post.caption}</p><p><b>Scheduled Date:</b> ${post.scheduled_datetime}</p><p><b>Posted At:</b> ${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila'})}</p>${post.drive_url?`<p><a href="${post.drive_url}">View Drive File</a></p>`:''}<p style="color:#666;font-size:12px;margin-top:24px">Sent automatically by PlayDistro Portal</p></div>`
+    }});
+  } catch(e) { console.warn('Email failed', e); }
+  // Email to admin
+  try {
+    await sb.functions.invoke('notify-email', { body: { 
+      to: 'playdistroph@gmail.com',
+      subject: `✅ ${currentUser.username} marked a post as Posted — PlayDistro`,
+      html: `<div style="font-family:sans-serif;padding:32px"><div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:20px;border-radius:12px;margin-bottom:20px"><h2 style="margin:0;color:#fff">✅ Post Marked as Posted</h2></div><p><b>Agent:</b> ${currentUser.username}</p><p><b>Platform:</b> ${post.platforms.join(', ')}</p><p><b>Caption:</b> ${post.caption}</p><p><b>File:</b> ${post.file_name||'—'}</p><p><b>Scheduled Date:</b> ${post.scheduled_datetime}</p><p><b>Posted At:</b> ${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila'})}</p>${post.drive_url?`<p><a href="${post.drive_url}">View Drive File</a></p>`:''}</div>`
+    }});
+  } catch(e) { console.warn('Email failed', e); }
 }
 // ===== END SCHEDULER =====
 
