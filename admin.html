@@ -949,7 +949,14 @@ function subscribeRealtime() {
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'scheduled_posts'}, async (payload) => {
       const p = payload.new;
       try {
-        await sb.functions.invoke('notify-email', { body: { to: 'playdistroph@gmail.com', subject: `🆕 New Scheduled Post by ${p.username||'Agent'} — PlayDistro`, html: `<div style="font-family:sans-serif;padding:32px"><h2>🆕 New Scheduled Post</h2><p><b>Agent:</b> ${p.username||'—'}</p><p><b>Platform:</b> ${(p.platforms||[]).join(', ')||'—'}</p><p><b>Caption:</b> ${p.caption||'—'}</p><p><b>Scheduled:</b> ${p.scheduled_datetime||'—'}</p></div>` } });
+        await sb.functions.invoke('notify-email', { body: { to: 'playdistroph@gmail.com', subject: `🆕 New Scheduled Post by ${p.username||'Agent'} — PlayDistro`, html: `<div style="font-family:sans-serif;padding:32px"><h2>🆕 New Scheduled Post</h2><p><b>Agent:</b> ${p.username||'—'}</p><p><b>Platform:</b> ${(p.platforms||[]).join(', ')||'—'}</p><p><b>Caption:</b> ${p.caption||'—'}</p><p><b>File:</b> ${p.file_name||'—'}</p><p><b>Scheduled:</b> ${p.scheduled_datetime||'—'}</p>${p.drive_url?`<p><a href="${p.drive_url}">View Drive File</a></p>`:''}</div>` } });
+      } catch(e) { console.warn('Email notify failed', e); }
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'scheduled_posts'}, async (payload) => {
+      const p = payload.new;
+      if(p.status !== 'Posted') return;
+      try {
+        await sb.functions.invoke('notify-email', { body: { to: 'playdistroph@gmail.com', subject: `✅ Post Marked as Posted by ${p.username||'Agent'} — PlayDistro`, html: `<div style="font-family:sans-serif;padding:32px"><h2>✅ Post Marked as Posted</h2><p><b>Agent:</b> ${p.username||'—'}</p><p><b>Platform:</b> ${(p.platforms||[]).join(', ')||'—'}</p><p><b>Caption:</b> ${p.caption||'—'}</p><p><b>File:</b> ${p.file_name||'—'}</p><p><b>Scheduled:</b> ${p.scheduled_datetime||'—'}</p>${p.drive_url?`<p><a href="${p.drive_url}">View Drive File</a></p>`:''}</div>` } });
       } catch(e) { console.warn('Email notify failed', e); }
     })
     .subscribe();
