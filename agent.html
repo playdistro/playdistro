@@ -490,9 +490,9 @@ window.addEventListener('load', async () => {
 
   loadDashboard();
   loadNotifications();
-  checkScheduledAlerts();
   loadCaptionTemplates();
   subscribeRealtime();
+  setTimeout(checkScheduledAlerts, 2000);
 });
 async function checkScheduledAlerts() {
   const now = new Date();
