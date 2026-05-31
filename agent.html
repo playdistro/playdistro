@@ -995,7 +995,6 @@ function openSchedModal(idx){
   document.getElementById('sched-month').value='01';
   document.getElementById('sched-day').value='01';
   document.getElementById('sched-year').value=new Date().getFullYear();
-  document.getElementById('sched-status').value='Scheduled';
   document.getElementById('sched-content-type').value='';
   document.getElementById('sched-filename').value='';
   document.getElementById('sched-drive-url').value='';
@@ -1017,7 +1016,7 @@ function openSchedModal(idx){
     let ph=dt.getHours(); const pAmpm=ph>=12?'PM':'AM'; ph=ph%12||12;
     document.getElementById('sched-hour').value=String(ph).padStart(2,'0');
     document.getElementById('sched-ampm').value=pAmpm;
-    document.getElementById('sched-status').value=p.status;
+    
   }
   openModal('schedModal');
 }
