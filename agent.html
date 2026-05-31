@@ -1062,13 +1062,20 @@ await sb.from('scheduled_posts').insert({
   drive_url:driveUrl
 });
 await loadSchedPosts();
+
 closeModal('schedModal');
 renderSchedCal();
 renderSchedQueue();
 toast('Post saved!','success');
 await sendEmail(`📅 Post Scheduled by ${currentUser.username}`,`Platform: ${platforms.join(', ')}\nDate: ${datetime}\nCaption: ${caption}\nFile: ${filename}\nDrive: ${driveUrl}`);
 }
-
+async function loadSchedPosts(){
+  const { data } = await sb.from('scheduled_posts')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('scheduled_datetime',{ascending:true});
+  schedPosts = data || [];
+}
 
   
 function schedChangeMonth(d){ schedCalDate.setMonth(schedCalDate.getMonth()+d); renderSchedCal(); }
