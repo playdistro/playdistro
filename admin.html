@@ -408,6 +408,64 @@ textarea{resize:vertical;min-height:80px}
 <div class="toast" id="toast"></div>
 
 <script>
+async function checkAdminSchedAlerts() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const { data } = await sb.from('scheduled_posts')
+    .select('*')
+    .eq('status','Scheduled');
+  if (!data || !data.length) return;
+  const overdue = data.filter(p => new Date(p.scheduled_datetime) < now && p.scheduled_datetime.slice(0,10) !== todayStr);
+  const today = data.filter(p => p.scheduled_datetime.slice(0,10) === todayStr);
+  if (!overdue.length && !today.length) return;
+
+  // Group by agent
+  const agentMap = {};
+  [...overdue, ...today].forEach(p => {
+    if (!agentMap[p.username]) agentMap[p.username] = {overdue:[], today:[]};
+    if (p.scheduled_datetime.slice(0,10) === todayStr) agentMap[p.username].today.push(p);
+    else agentMap[p.username].overdue.push(p);
+  });
+
+  const rows = Object.entries(agentMap).map(([name,d]) =>
+    `<tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a"><strong>${name}</strong></td>
+    <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#fbbf24">${d.today.length} today</td>
+    <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#f87171">${d.overdue.length} overdue</td></tr>`
+  ).join('');
+
+  let banner = document.getElementById('adminSchedAlert');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'adminSchedAlert';
+    banner.style.cssText = 'margin:16px 24px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.4);border-radius:10px;padding:16px 20px';
+    document.querySelector('.content').prepend(banner);
+  }
+  banner.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-family:Syne,sans-serif;font-weight:700;color:#f87171">🔴 Unupdated Scheduled Posts Alert</div>
+      <button onclick="showTab('scheduled')" style="background:#f87171;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:12px">View Scheduled Posts →</button>
+    </div>
+    <table style="width:100%;font-size:13px"><thead><tr>
+      <th style="text-align:left;padding:6px 12px;color:#666;font-size:11px">Agent</th>
+      <th style="text-align:left;padding:6px 12px;color:#666;font-size:11px">Today</th>
+      <th style="text-align:left;padding:6px 12px;color:#666;font-size:11px">Overdue</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+
+  // Email admin
+  const emailRows = Object.entries(agentMap).map(([name,d]) =>
+    `<tr><td style="padding:8px 12px;border:1px solid #333">${name}</td><td style="padding:8px 12px;border:1px solid #333;color:#fbbf24">${d.today.length}</td><td style="padding:8px 12px;border:1px solid #333;color:#f87171">${d.overdue.length}</td></tr>`
+  ).join('');
+  try {
+    await sb.functions.invoke('notify-email', { body: {
+      to: 'playdistroph@gmail.com',
+      subject: `🔴 Unupdated Scheduled Posts Alert — PlayDistro`,
+      html: `<div style="font-family:sans-serif;padding:32px;max-width:600px"><div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:20px;border-radius:12px;margin-bottom:20px"><h2 style="margin:0;color:#fff">🔴 Unupdated Posts Alert</h2><div style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:6px">${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila'})}</div></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:8px 12px;border:1px solid #333;text-align:left">Agent</th><th style="padding:8px 12px;border:1px solid #333">Today</th><th style="padding:8px 12px;border:1px solid #333">Overdue</th></tr></thead><tbody>${emailRows}</tbody></table>
+      <p style="color:#666;font-size:12px;margin-top:24px">Login to PlayDistro Admin Portal to view details.</p></div>`
+    }});
+  } catch(e) { console.warn('Alert email failed', e); }
+}
+
 async function sendEmail(subject, body) {
   await sb.functions.invoke('notify-email', {
     body: { subject, body }
@@ -429,6 +487,7 @@ window.addEventListener('load', async () => {
   document.getElementById('sidebarUser').textContent = currentUser.username;
   document.getElementById('sidebarRole').textContent = currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1)+' Portal';
   loadDashboard();
+  checkAdminSchedAlerts();
   loadNotifCount();
   subscribeRealtime();
 });
