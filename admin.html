@@ -295,9 +295,39 @@ textarea{resize:vertical;min-height:80px}
         </div>
       </div>
 <div class="tab-panel" id="tab-scheduled">
+
+  <!-- SUMMARY REPORT CARDS -->
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Total Scheduled</div><div class="stat-val purple" id="schedTotal">0</div></div>
+    <div class="stat-card"><div class="stat-label">Posted</div><div class="stat-val green" id="schedPosted">0</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val yellow" id="schedPending">0</div></div>
+    <div class="stat-card"><div class="stat-label">Agents Reporting</div><div class="stat-val" id="schedAgents">0</div></div>
+  </div>
+
+  <!-- PER-AGENT REPORT -->
+  <div class="section" style="margin-bottom:20px">
+    <div class="section-head">
+      <div class="section-title">📊 Agent Report</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="schedDateFrom" style="width:auto;padding:6px 10px;font-size:12px">
+        <input type="date" id="schedDateTo" style="width:auto;padding:6px 10px;font-size:12px">
+        <button class="btn btn-sm" onclick="loadAdminSched()">Filter</button>
+        <button class="btn btn-sm btn-outline" onclick="exportSchedCSV()">Export CSV</button>
+        <button class="btn btn-sm btn-success" onclick="sendSchedEmailReport()">📧 Email Report</button>
+      </div>
+    </div>
+    <div class="section-body">
+      <table class="tbl">
+        <thead><tr><th>Agent</th><th>Total Posts</th><th>Posted</th><th>Scheduled</th><th>Platforms</th><th>Last Activity</th></tr></thead>
+        <tbody id="agentReportTable"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FULL POST LOG -->
   <div class="section">
     <div class="section-head">
-      <div class="section-title">📅 Scheduled Posts</div>
+      <div class="section-title">📅 All Scheduled Posts</div>
       <select id="schedFilter" onchange="loadAdminSched()" style="width:auto;padding:6px 10px;font-size:12px">
         <option value="all">All</option>
         <option value="Scheduled">Scheduled</option>
@@ -306,11 +336,12 @@ textarea{resize:vertical;min-height:80px}
     </div>
     <div class="section-body">
       <table class="tbl">
-        <thead><tr><th>Agent</th><th>Platform</th><th>Caption</th><th>File Name</th><th>Drive</th><th>Scheduled</th><th>Status</th></tr></thead>
-        <tbody id="adminSchedTable"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <thead><tr><th>Agent</th><th>Platform</th><th>Caption</th><th>File Name</th><th>Drive</th><th>Scheduled</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="adminSchedTable"><tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
+
 </div>
     </div>
 
@@ -806,11 +837,6 @@ async function loadNotifCount() {
   el.textContent = cnt;
 }
 
-// REALTIME
-function subscribeRealtime() {
-  sb.channel('admin_realtime').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},()=>{loadDashboard();}).on('postgres_changes',{event:'*',schema:'public',table:'users'},()=>{loadDashboard();}).subscribe();
-}
-
 // LOGOUT
 async function doLogout() {
   if (!confirm('Sign out?')) return;
@@ -831,23 +857,101 @@ function toast(msg, type='success') {
 }
 
 // FORMAT PHT
-async function loadAdminSched(){
-  const filter=document.getElementById('schedFilter').value;
-  let q=sb.from('scheduled_posts').select('*').order('scheduled_datetime',{ascending:false});
-  if(filter!=='all') q=q.eq('status',filter);
-  const {data}=await q;
-  const tbody=document.getElementById('adminSchedTable');
-  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">No scheduled posts</td></tr>';return;}
-  const statusColor={Scheduled:'badge-yellow',Posted:'badge-green'};
-  tbody.innerHTML=data.map(p=>`<tr>
+  async function loadAdminSched(){
+  const filter = document.getElementById('schedFilter') ? document.getElementById('schedFilter').value : 'all';
+  const dateFrom = document.getElementById('schedDateFrom') ? document.getElementById('schedDateFrom').value : '';
+  const dateTo = document.getElementById('schedDateTo') ? document.getElementById('schedDateTo').value : '';
+  let q = sb.from('scheduled_posts').select('*').order('scheduled_datetime',{ascending:false});
+  if(filter !== 'all') q = q.eq('status', filter);
+  if(dateFrom) q = q.gte('scheduled_datetime', dateFrom);
+  if(dateTo) q = q.lte('scheduled_datetime', dateTo+'T23:59:59');
+  const { data } = await q;
+  const posts = data || [];
+  const uniqueAgents = [...new Set(posts.map(p=>p.username).filter(Boolean))];
+  document.getElementById('schedTotal').textContent = posts.length;
+  document.getElementById('schedPosted').textContent = posts.filter(p=>p.status==='Posted').length;
+  document.getElementById('schedPending').textContent = posts.filter(p=>p.status==='Scheduled').length;
+  document.getElementById('schedAgents').textContent = uniqueAgents.length;
+  const agentMap = {};
+  posts.forEach(p => {
+    const u = p.username || 'Unknown';
+    if(!agentMap[u]) agentMap[u] = { total:0, posted:0, scheduled:0, platforms:new Set(), last:null };
+    agentMap[u].total++;
+    if(p.status==='Posted') agentMap[u].posted++;
+    if(p.status==='Scheduled') agentMap[u].scheduled++;
+    (p.platforms||[]).forEach(pl => agentMap[u].platforms.add(pl));
+    if(!agentMap[u].last || p.scheduled_datetime > agentMap[u].last) agentMap[u].last = p.scheduled_datetime;
+  });
+  const agentTbody = document.getElementById('agentReportTable');
+  if(Object.keys(agentMap).length === 0){
+    agentTbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">No data</td></tr>';
+  } else {
+    agentTbody.innerHTML = Object.entries(agentMap).map(([name, d])=>`<tr>
+      <td><strong>${name}</strong></td>
+      <td><span class="badge badge-purple">${d.total}</span></td>
+      <td><span class="badge badge-green">${d.posted}</span></td>
+      <td><span class="badge badge-yellow">${d.scheduled}</span></td>
+      <td style="font-size:12px">${[...d.platforms].join(', ')||'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${formatPHT(d.last)}</td>
+    </tr>`).join('');
+  }
+  const tbody = document.getElementById('adminSchedTable');
+  const statusColor = {Scheduled:'badge-yellow', Posted:'badge-green'};
+  if(posts.length === 0){ tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">No scheduled posts</td></tr>'; return; }
+  tbody.innerHTML = posts.map(p=>`<tr>
     <td>${p.username||'—'}</td>
-    <td style="font-size:12px">${(p.platforms||[]).join(', ')}</td>
-    <td style="font-size:12px">${p.caption?p.caption.slice(0,60)+'...':'—'}</td>
     <td style="font-size:11px;color:var(--muted)">${p.file_name||'—'}</td>
     <td>${p.drive_url?`<a href="${p.drive_url}" target="_blank" style="color:var(--purple);font-size:12px">🔗 View</a>`:'—'}</td>
     <td style="font-size:11px;color:var(--muted)">${formatPHT(p.scheduled_datetime)}</td>
     <td><span class="badge ${statusColor[p.status]||'badge-blue'}">${p.status}</span></td>
+    <td>${p.status==='Scheduled'?`<button class="btn btn-sm btn-success" onclick="markPosted('${p.id}')">✓ Mark Posted</button>`:'<span style="color:var(--muted);font-size:11px">Done</span>'}</td>
   </tr>`).join('');
+}
+async function markPosted(id){
+  await sb.from('scheduled_posts').update({ status:'Posted', updated_at: new Date().toISOString() }).eq('id', id);
+  toast('Marked as Posted!','success');
+  loadAdminSched();
+}
+function exportSchedCSV(){
+  const rows = [['Agent','Platform','Caption','File Name','Drive URL','Scheduled','Status']];
+  document.querySelectorAll('#adminSchedTable tr').forEach(tr=>{
+    const cells = Array.from(tr.querySelectorAll('td')).map(td=>td.innerText.replace(/\n/g,' '));
+    if(cells.length) rows.push(cells.slice(0,7));
+  });
+  const csv = rows.map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = 'scheduled_posts_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+async function sendSchedEmailReport(){
+  const agents = {};
+  document.querySelectorAll('#agentReportTable tr').forEach(tr=>{
+    const cells = Array.from(tr.querySelectorAll('td')).map(td=>td.innerText.replace(/\n/g,' '));
+    if(cells.length) agents[cells[0]] = cells;
+  });
+  const total = document.getElementById('schedTotal').textContent;
+  const posted = document.getElementById('schedPosted').textContent;
+  const pending = document.getElementById('schedPending').textContent;
+  const agentCount = document.getElementById('schedAgents').textContent;
+  const agentRows = Object.entries(agents).map(([name,d])=>`<tr><td style="padding:8px 12px;border:1px solid #333">${name}</td><td style="padding:8px 12px;border:1px solid #333;text-align:center">${d[1]||0}</td><td style="padding:8px 12px;border:1px solid #333;text-align:center;color:#4ade80">${d[2]||0}</td><td style="padding:8px 12px;border:1px solid #333;text-align:center;color:#fbbf24">${d[3]||0}</td><td style="padding:8px 12px;border:1px solid #333">${d[4]||'—'}</td><td style="padding:8px 12px;border:1px solid #333;font-size:11px">${d[5]||'—'}</td></tr>`).join('');
+  const emailBody = `<div style="font-family:sans-serif;padding:32px;max-width:700px;margin:0 auto"><div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:20px 24px;border-radius:12px;margin-bottom:24px"><h1 style="margin:0;font-size:22px;color:#fff">📅 PlayDistro — Scheduled Posts Report</h1><div style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:6px">Generated: ${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila'})}</div></div><p>Total: ${total} | Posted: ${posted} | Pending: ${pending} | Agents: ${agentCount}</p><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:8px 12px;border:1px solid #333;text-align:left">Agent</th><th style="padding:8px 12px;border:1px solid #333">Total</th><th style="padding:8px 12px;border:1px solid #333">Posted</th><th style="padding:8px 12px;border:1px solid #333">Pending</th><th style="padding:8px 12px;border:1px solid #333">Platforms</th><th style="padding:8px 12px;border:1px solid #333">Last Activity</th></tr></thead><tbody>${agentRows}</tbody></table></div>`;
+  try {
+    await sb.functions.invoke('notify-email', { body: { to: 'playdistroph@gmail.com', subject: `📅 PlayDistro Scheduled Posts Report — ${new Date().toLocaleDateString('en-PH',{timeZone:'Asia/Manila'})}`, html: emailBody } });
+    toast('Report emailed ✓','success');
+  } catch(e) { toast('Email failed','error'); }
+}
+function subscribeRealtime() {
+  sb.channel('admin_realtime')
+    .on('postgres_changes',{event:'*',schema:'public',table:'tasks'},()=>{loadDashboard();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'users'},()=>{loadDashboard();})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'scheduled_posts'}, async (payload) => {
+      const p = payload.new;
+      try {
+        await sb.functions.invoke('notify-email', { body: { to: 'playdistroph@gmail.com', subject: `🆕 New Scheduled Post by ${p.username||'Agent'} — PlayDistro`, html: `<div style="font-family:sans-serif;padding:32px"><h2>🆕 New Scheduled Post</h2><p><b>Agent:</b> ${p.username||'—'}</p><p><b>Platform:</b> ${(p.platforms||[]).join(', ')||'—'}</p><p><b>Caption:</b> ${p.caption||'—'}</p><p><b>Scheduled:</b> ${p.scheduled_datetime||'—'}</p></div>` } });
+      } catch(e) { console.warn('Email notify failed', e); }
+    })
+    .subscribe();
 }
   function formatPHT(iso) {
   if (!iso) return '—';
