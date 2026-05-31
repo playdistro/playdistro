@@ -475,7 +475,8 @@ window.addEventListener('load', async () => {
   document.getElementById('sidebarUser').textContent = currentUser.username;
   schedPosts = JSON.parse(localStorage.getItem('pd_sched_'+currentUser.id)||'[]');
   initSchedDateDropdowns();
-  document.getElementById('videoCallBtn').href = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
+  const vcBtn = document.getElementById('videoCallBtn');
+  if(vcBtn) vcBtn.href = 'https://meet.jit.si/PlayDistro-' + currentUser.username;
   
   // Check if already clocked in (same session)
   const savedAtt = sessionStorage.getItem('pd_attendance');
@@ -502,7 +503,7 @@ async function checkScheduledAlerts() {
     .eq('user_id', currentUser.id)
     .eq('status','Scheduled');
   if (!data || !data.length) return;
-  const overdue = data.filter(p => new Date(p.scheduled_datetime) < now && p.scheduled_datetime.slice(0,10) !== todayStr);
+  const overdue = data.filter(p => new Date(p.scheduled_datetime) < now);
   const today = data.filter(p => p.scheduled_datetime.slice(0,10) === todayStr);
   if (!overdue.length && !today.length) return;
   let msg = '';
