@@ -976,6 +976,12 @@ function updateSchedFileName(){
     }
   }
 }
+function toggleDriveFields(){
+  const yes = document.getElementById('drive-yes').checked;
+  const no = document.getElementById('drive-no').checked;
+  document.getElementById('drive-fields').style.display = yes ? 'block' : 'none';
+  document.getElementById('drive-not-uploaded-msg').style.display = no ? 'block' : 'none';
+}
 function toggleSchedPill(el){
   el.classList.toggle('active');
   updateSchedFileName();
@@ -996,6 +1002,12 @@ function openSchedModal(idx){
   document.getElementById('sched-day').value='01';
   document.getElementById('sched-year').value=new Date().getFullYear();
   document.getElementById('sched-status').value='Scheduled';
+  document.getElementById('sched-content-type').value='';
+  document.getElementById('sched-filename').value='';
+  document.getElementById('sched-drive-url').value='';
+  document.getElementById('drive-fields').style.display='none';
+  document.getElementById('drive-not-uploaded-msg').style.display='none';
+  document.querySelectorAll('input[name="drive-uploaded"]').forEach(r=>r.checked=false);
   if(schedEditIdx>=0){
     const p=schedPosts[schedEditIdx];
     p.platforms.forEach(pl=>{
