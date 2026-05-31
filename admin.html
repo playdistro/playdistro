@@ -337,8 +337,8 @@ textarea{resize:vertical;min-height:80px}
     </div>
     <div class="section-body">
       <table class="tbl">
-        <thead><tr><th>Agent</th><th>Platform</th><th>Caption</th><th>File Name</th><th>Drive</th><th>Scheduled</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody id="adminSchedTable"><tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <thead><tr><th>Agent</th><th>Platform</th><th>Caption</th><th>File Name</th><th>Drive</th><th>Scheduled</th><th>Status</th></tr></thead>
+        <tbody id="adminSchedTable"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -905,7 +905,7 @@ function toast(msg, type='success') {
     <td>${p.drive_url?`<a href="${p.drive_url}" target="_blank" style="color:var(--purple);font-size:12px">🔗 View</a>`:'—'}</td>
     <td style="font-size:11px;color:var(--muted)">${formatPHT(p.scheduled_datetime)}</td>
     <td><span class="badge ${statusColor[p.status]||'badge-blue'}">${p.status}</span></td>
-    <td>${p.status==='Scheduled'?`<button class="btn btn-sm btn-success" onclick="markPosted('${p.id}')">✓ Mark Posted</button>`:'<span style="color:var(--muted);font-size:11px">Done</span>'}</td>
+    <td><span class="badge ${statusColor[p.status]||'badge-blue'}">${p.status}</span></td>
   </tr>`).join('');
 }
 async function markPosted(id){
