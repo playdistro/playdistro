@@ -321,7 +321,8 @@ textarea{resize:vertical;min-height:80px}
       <div class="form-group full">
         <div class="form-label">Platforms</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn btn-sm btn-outline sched-pill" data-p="Facebook/Instagram" onclick="toggleSchedPill(this)">📘 Facebook / Instagram</button>
+          <button type="button" class="btn btn-sm btn-outline sched-pill" data-p="Facebook" onclick="toggleSchedPill(this)">📘 Facebook</button>
+          <button type="button" class="btn btn-sm btn-outline sched-pill" data-p="Instagram" onclick="toggleSchedPill(this)">📸 Instagram</button>
           <button type="button" class="btn btn-sm btn-outline sched-pill" data-p="TikTok" onclick="toggleSchedPill(this)">🎵 TikTok</button>
           <button type="button" class="btn btn-sm btn-outline sched-pill" data-p="YouTube" onclick="toggleSchedPill(this)">▶️ YouTube</button>
         </div>
@@ -378,10 +379,12 @@ textarea{resize:vertical;min-height:80px}
             <option value="Graphic">Graphic</option>
             <option value="Carousel">Carousel</option>
             <option value="Caption Only">Caption Only</option>
-          </select>
+            <option value="Shorts">Shorts</option>
+            <option value="Thumbnail">Thumbnail</option>
+    </select>
         </div>
         <div style="margin-bottom:14px">
-   <a href="https://drive.google.com/drive/folders/1a7IAoOpdmKRAwm-TfCnKkR0yL10TGzll" target="_blank" class="btn" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin-bottom:8px">
+   <a id="drive-folder-btn" href="https://drive.google.com/drive/folders/1a7IAoOpdmKRAwm-TfCnKkR0yL10TGzll" target="_blank" class="btn"
     📁 Open Play Distro Content Folder
   </a>
   <div style="font-size:11px;color:var(--muted);margin-top:4px">Upload your file there first, then come back and confirm below.</div>
@@ -947,7 +950,32 @@ function switchSchedTab(t){
   if(t==='cal') renderSchedCal();
   else renderSchedQueue();
 }
-
+  const driveFolders={
+  'Facebook':{'Video':'1IpSIaPUVEOD6BHNJPKARPQWCHwe-kk5z','Graphic':'1I4w2JI346Qut80snanlIlZFOIuhEoN0n','Carousel':'1hz1tJicKrK__n54Hl-xfRltRDbpvx74-','Caption Only':'1Y9LL_UhEXImHwEUzANsohoLs42r0Ad8j'},
+  'Instagram':{'Video':'1AIzN0835vBH9Z_CmalIbAfyBEoSk-W6K','Graphic':'1snEeDWryU9oUMsEUmseypc_n6LnVqKhM','Carousel':'1bCA567YfcNmdmFdPLlwIn1VlvgCZ_XW2','Caption Only':'141mMWdiqTt_j9doRvWpFrH2nga_yWMeM'},
+  'TikTok':{'Video':'1dSvkOWrh8xnN-0BRX8Ap4t3VeKYSiylH'},
+  'YouTube':{'Video':'1WW3lIYG2sHYC5av1hiOy5IpZYcMQfCIZ','Shorts':'1S6X4OQq2hrqmgPfV3o4VvuoqKP_OPjgd','Thumbnail':'1zZZw3NlxSx5ClslUxgO1DYFShIhAi8pW'}
+};
+function updateSchedFileName(){
+  const platforms=[...document.querySelectorAll('.sched-pill.active')].map(p=>p.dataset.p);
+  const type=document.getElementById('sched-content-type').value;
+  const month=document.getElementById('sched-month').value;
+  const day=document.getElementById('sched-day').value;
+  const year=document.getElementById('sched-year').value;
+  const platform=platforms.length?platforms[0]:'';
+  const username=currentUser?currentUser.username:'agent';
+  if(type&&platform){
+    document.getElementById('sched-filename').value=`${username}_${platform}_${year}-${month}-${day}_${type}`;
+  }
+  const btn=document.getElementById('drive-folder-btn');
+  if(btn){
+    if(platform&&type&&driveFolders[platform]&&driveFolders[platform][type]){
+      btn.href=`https://drive.google.com/drive/folders/${driveFolders[platform][type]}`;
+    } else {
+      btn.href='https://drive.google.com/drive/folders/1a7IAoOpdmKRAwm-TfCnKkR0yL10TGzll';
+    }
+  }
+}
 function toggleSchedPill(el){
   el.classList.toggle('active');
   updateSchedFileName();
@@ -1007,10 +1035,9 @@ async function saveSchedPost(){
  const driveUploaded = document.querySelector('input[name="drive-uploaded"]:checked');
  if(!driveUploaded){ toast('Please confirm if file is uploaded to Google Drive','error'); return; }
  if(driveUploaded.value==='no'){ toast('Upload the file to Google Drive first before scheduling','error'); return; }
- const driveUrl = document.getElementById('sched-drive-url').value.trim();
  const filename = document.getElementById('sched-filename').value.trim();
- if(!driveUrl){ toast('Paste the Google Drive shared link','error'); return; }
  if(!filename){ toast('Enter the file name','error'); return; }
+ const driveUrl='https://drive.google.com/drive/folders/1a7IAoOpdmKRAwm-TfCnKkR0yL10TGzll';
 await sb.from('scheduled_posts').insert({
   user_id:currentUser.id,
   username:currentUser.username,
@@ -1046,7 +1073,8 @@ function renderSchedCal(){
       const idx=schedPosts.indexOf(p);
       let cls='sched-dot-multi';
       if(p.platforms.length===1){
-        if(p.platforms[0]==='Facebook/Instagram') cls='sched-dot-fb';
+        if(p.platforms[0]==='Facebook') cls='sched-dot-fb';
+        else if(p.platforms[0]==='Instagram') cls='sched-dot-fb';
         else if(p.platforms[0]==='TikTok') cls='sched-dot-tk';
         else if(p.platforms[0]==='YouTube') cls='sched-dot-yt';
       }
@@ -1061,7 +1089,8 @@ function renderSchedCal(){
 
 function getPublishBtns(post){
   return post.platforms.map(pl=>{
-   if(pl==='Facebook/Instagram') return `<a href="https://www.facebook.com" target="_blank" class="btn btn-sm" style="background:rgba(24,119,242,0.2);border:1px solid rgba(24,119,242,0.4);color:#60a5fa;text-decoration:none">📘 Open Facebook</a>`;
+   if(pl==='Facebook') return `<a href="https://www.facebook.com" target="_blank" class="btn btn-sm" style="background:rgba(24,119,242,0.2);border:1px solid rgba(24,119,242,0.4);color:#60a5fa;text-decoration:none">📘 Open Facebook</a>`;
+   if(pl==='Instagram') return `<a href="https://www.instagram.com" target="_blank" class="btn btn-sm" style="background:rgba(225,48,108,0.2);border:1px solid rgba(225,48,108,0.4);color:#f9a8d4;text-decoration:none">📸 Open Instagram</a>`;
    if(pl==='TikTok') return `<a href="https://www.tiktok.com/upload" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);text-decoration:none">🎵 TikTok Upload</a>`;
    if(pl==='YouTube') return `<a href="https://studio.youtube.com" target="_blank" class="btn btn-sm" style="background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#f87171;text-decoration:none">▶️ YouTube Studio</a>`;
     return '';
